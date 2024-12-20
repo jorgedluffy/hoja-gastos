@@ -7,6 +7,9 @@ const App = () => {
     const [gastos, setGastos] = useState([]);
     const [nuevaCategoria, setNuevaCategoria] = useState('');
     const [nuevoGasto, setNuevoGasto] = useState({ descripcion: '', cantidad: '', categoria: '' });
+    const [filtroCategoria, setFiltroCategoria] = useState('');
+    const [filtroCantidad, setFiltroCantidad] = useState('');
+    const [filtroFecha, setFiltroFecha] = useState('');
 
     // Load data from backend
     useEffect(() => {
@@ -32,7 +35,7 @@ const App = () => {
 
     const handleAddGasto = async () => {
         if (!nuevoGasto.descripcion.trim() || parseFloat(nuevoGasto.cantidad) <= 0 || !nuevoGasto.categoria) {
-            alert('Por favor, completa todos los campos correctamente: descripción no vacía, cantidad mayor a 0 y categoría seleccionada.');
+            alert('Por favor, completa todos los campos correctamente: descripción no vacía, Cantidad mayor a 0 y categoría seleccionada.');
             return;
         }
         const res = await axios.post('http://localhost:5000/gastos', nuevoGasto);
@@ -40,6 +43,15 @@ const App = () => {
         setNuevoGasto({ descripcion: '', cantidad: '', categoria: '' });
     };
 
+    // Filtrar gastos según criterios
+    const filtrarGastos = () => {
+        return gastos.filter((gasto) => {
+            const cumpleCategoria = filtroCategoria ? gasto.categoria?._id === filtroCategoria : true;
+            const cumpleCantidad = filtroCantidad ? parseFloat(gasto.cantidad) >= parseFloat(filtroCantidad) : true;
+            const cumpleFecha = filtroFecha ? new Date(gasto.fecha).toLocaleDateString() === filtroFecha : true;
+            return cumpleCategoria && cumpleCantidad && cumpleFecha;
+        });
+    };
 
     return (
         <div>
@@ -59,6 +71,41 @@ const App = () => {
                         <li key={cat._id}>{cat.nombre}</li>
                     ))}
                 </ul>
+            </section>
+
+            <section>
+                <h2>Filtrar Gastos</h2>
+                <div>
+                    <label>Categoría:</label>
+                    <select
+                        value={filtroCategoria}
+                        onChange={(e) => setFiltroCategoria(e.target.value)}
+                    >
+                        <option value="">Todas</option>
+                        {categorias.map((cat) => (
+                            <option key={cat._id} value={cat._id}>
+                                {cat.nombre}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label>Cantidad mínimo:</label>
+                    <input
+                        type="number"
+                        placeholder="Cantidad mínimo"
+                        value={filtroCantidad}
+                        onChange={(e) => setFiltroCantidad(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Fecha:</label>
+                    <input
+                        type="date"
+                        value={filtroFecha}
+                        onChange={(e) => setFiltroFecha(e.target.value)}
+                    />
+                </div>
             </section>
 
             <section>
@@ -98,7 +145,7 @@ const App = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {gastos.map((gasto) => (
+                        {filtrarGastos().map((gasto) => (
                             <tr key={gasto._id}>
                                 <td>{gasto.descripcion}</td>
                                 <td>{gasto.cantidad}</td>
