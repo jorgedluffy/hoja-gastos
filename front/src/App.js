@@ -6,7 +6,7 @@ const App = () => {
     const [categorias, setCategorias] = useState([]);
     const [gastos, setGastos] = useState([]);
     const [nuevaCategoria, setNuevaCategoria] = useState('');
-    const [nuevoGasto, setNuevoGasto] = useState({ descripcion: '', monto: '', categoria: '' });
+    const [nuevoGasto, setNuevoGasto] = useState({ descripcion: '', cantidad: '', categoria: '' });
 
     // Load data from backend
     useEffect(() => {
@@ -21,16 +21,25 @@ const App = () => {
 
     // Handlers for adding data
     const handleAddCategoria = async () => {
+        if (!nuevaCategoria.trim()) {
+            alert('El nombre de la categoría no puede estar vacío.');
+            return;
+        }
         const res = await axios.post('http://localhost:5000/categorias', { nombre: nuevaCategoria });
         setCategorias([...categorias, res.data]);
         setNuevaCategoria('');
     };
 
     const handleAddGasto = async () => {
+        if (!nuevoGasto.descripcion.trim() || parseFloat(nuevoGasto.cantidad) <= 0 || !nuevoGasto.categoria) {
+            alert('Por favor, completa todos los campos correctamente: descripción no vacía, cantidad mayor a 0 y categoría seleccionada.');
+            return;
+        }
         const res = await axios.post('http://localhost:5000/gastos', nuevoGasto);
         setGastos([...gastos, res.data]);
-        setNuevoGasto({ descripcion: '', monto: '', categoria: '' });
+        setNuevoGasto({ descripcion: '', cantidad: '', categoria: '' });
     };
+
 
     return (
         <div>
@@ -62,9 +71,9 @@ const App = () => {
                 />
                 <input
                     type="number"
-                    placeholder="Monto"
-                    value={nuevoGasto.monto}
-                    onChange={(e) => setNuevoGasto({ ...nuevoGasto, monto: e.target.value })}
+                    placeholder="Cantidad"
+                    value={nuevoGasto.cantidad}
+                    onChange={(e) => setNuevoGasto({ ...nuevoGasto, cantidad: e.target.value })}
                 />
                 <select
                     value={nuevoGasto.categoria}
@@ -83,7 +92,7 @@ const App = () => {
                     <thead>
                         <tr>
                             <th>Descripción</th>
-                            <th>Monto</th>
+                            <th>Cantidad</th>
                             <th>Categoría</th>
                             <th>Fecha</th>
                         </tr>
@@ -92,7 +101,7 @@ const App = () => {
                         {gastos.map((gasto) => (
                             <tr key={gasto._id}>
                                 <td>{gasto.descripcion}</td>
-                                <td>{gasto.monto}</td>
+                                <td>{gasto.cantidad}</td>
                                 <td>{gasto.categoria?.nombre}</td>
                                 <td>{new Date(gasto.fecha).toLocaleDateString()}</td>
                             </tr>
