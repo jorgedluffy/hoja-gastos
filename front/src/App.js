@@ -13,6 +13,8 @@ const App = () => {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [nuevaCategoria, setNuevaCategoria] = useState('');
 
+    const [dialogGastoOpen, setDialogGastoOpen] = useState(false);
+
     // Load data from backend
     useEffect(() => {
         const fetchData = async () => {
@@ -41,9 +43,23 @@ const App = () => {
             alert('Por favor, completa todos los campos correctamente: descripción no vacía, cantidad mayor a 0 y categoría seleccionada.');
             return;
         }
-        const res = await axios.post('http://localhost:5000/gastos', nuevoGasto);
-        setGastos([...gastos, res.data]);
+
+        // Ensure categoria ID is correctly set
+        const categoriaSeleccionada = categorias.find(cat => cat._id === nuevoGasto.categoria);
+        if (!categoriaSeleccionada) {
+            alert('La categoría seleccionada no es válida.');
+            return;
+        }
+
+        const gastoData = {
+            ...nuevoGasto,
+            categoria: categoriaSeleccionada._id // Send only the ID to backend
+        };
+
+        const res = await axios.post('http://localhost:5000/gastos', gastoData);
+        setGastos([...gastos, { ...res.data, categoria: categoriaSeleccionada }]); // Save full category info for display
         setNuevoGasto({ descripcion: '', cantidad: '', categoria: '' });
+        setDialogGastoOpen(false);
     };
 
     // Filtrar gastos según criterios
@@ -130,30 +146,40 @@ const App = () => {
 
             <section className="gastos">
                 <h2>Gastos</h2>
-                <input
-                    type="text"
-                    placeholder="Descripción"
-                    value={nuevoGasto.descripcion}
-                    onChange={(e) => setNuevoGasto({ ...nuevoGasto, descripcion: e.target.value })}
-                />
-                <input
-                    type="number"
-                    placeholder="Cantidad"
-                    value={nuevoGasto.cantidad}
-                    onChange={(e) => setNuevoGasto({ ...nuevoGasto, cantidad: e.target.value })}
-                />
-                <select
-                    value={nuevoGasto.categoria}
-                    onChange={(e) => setNuevoGasto({ ...nuevoGasto, categoria: e.target.value })}
-                >
-                    <option value="">Seleccione Categoría</option>
-                    {categorias.map((cat) => (
-                        <option key={cat._id} value={cat._id}>
-                            {cat.nombre}
-                        </option>
-                    ))}
-                </select>
-                <button onClick={handleAddGasto}>Añadir Gasto</button>
+                <button onClick={() => setDialogGastoOpen(true)}>Añadir Gasto</button>
+
+                <Dialog open={dialogGastoOpen} onClose={() => setDialogGastoOpen(false)}>
+                    <div className="dialog">
+                        <h3>Nuevo Gasto</h3>
+                        <input
+                            type="text"
+                            placeholder="Descripción"
+                            value={nuevoGasto.descripcion}
+                            onChange={(e) => setNuevoGasto({ ...nuevoGasto, descripcion: e.target.value })}
+                        />
+                        <input
+                            type="number"
+                            placeholder="Cantidad"
+                            value={nuevoGasto.cantidad}
+                            onChange={(e) => setNuevoGasto({ ...nuevoGasto, cantidad: e.target.value })}
+                        />
+                        <select
+                            value={nuevoGasto.categoria}
+                            onChange={(e) => setNuevoGasto({ ...nuevoGasto, categoria: e.target.value })}
+                        >
+                            <option value="">Seleccione Categoría</option>
+                            {categorias.map((cat) => (
+                                <option key={cat._id} value={cat._id}>
+                                    {cat.nombre}
+                                </option>
+                            ))}
+                        </select>
+                        <div className="dialog-buttons">
+                            <button onClick={() => setDialogGastoOpen(false)}>Cancelar</button>
+                            <button onClick={handleAddGasto}>Aceptar</button>
+                        </div>
+                    </div>
+                </Dialog>
 
                 <table className="tabla-gastos">
                     <thead>
