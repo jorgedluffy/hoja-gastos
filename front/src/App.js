@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Dialog } from '@mui/material';
+import './App.css';
 
 const App = () => {
     const [categorias, setCategorias] = useState([]);
@@ -55,11 +56,16 @@ const App = () => {
         });
     };
 
-    return (
-        <div>
-            <h1>Gestor de Gastos del Hogar</h1>
+    const handleCantidadFiltro = (e) => {
+        const value = e.target.value;
+        setFiltros({ ...filtros, cantidad: value >= 1 ? value : 1 });
+    };
 
-            <section>
+    return (
+        <div className="app">
+            <h1 className="titulo">Gestor de Gastos del Hogar</h1>
+
+            <section className="categorias">
                 <h2>Categorías</h2>
                 <button onClick={() => setDialogOpen(true)}>Añadir Categoría</button>
                 <ul>
@@ -70,7 +76,7 @@ const App = () => {
             </section>
 
             <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-                <div style={{ padding: '20px', textAlign: 'center' }}>
+                <div className="dialog">
                     <h3>Nueva Categoría</h3>
                     <input
                         type="text"
@@ -78,16 +84,16 @@ const App = () => {
                         value={nuevaCategoria}
                         onChange={(e) => setNuevaCategoria(e.target.value)}
                     />
-                    <div style={{ marginTop: '20px' }}>
+                    <div className="dialog-buttons">
                         <button onClick={() => setDialogOpen(false)}>Cancelar</button>
                         <button onClick={handleAddCategoria}>Aceptar</button>
                     </div>
                 </div>
             </Dialog>
 
-            <section>
+            <section className="filtros">
                 <h2>Filtrar Gastos</h2>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <div className="filtros-container">
                     <div>
                         <label>Categoría:</label>
                         <select
@@ -108,7 +114,7 @@ const App = () => {
                             type="number"
                             placeholder="Cantidad mínima"
                             value={filtros.cantidad}
-                            onChange={(e) => setFiltros({ ...filtros, cantidad: e.target.value })}
+                            onChange={handleCantidadFiltro}
                         />
                     </div>
                     <div>
@@ -122,7 +128,7 @@ const App = () => {
                 </div>
             </section>
 
-            <section>
+            <section className="gastos">
                 <h2>Gastos</h2>
                 <input
                     type="text"
@@ -149,7 +155,7 @@ const App = () => {
                 </select>
                 <button onClick={handleAddGasto}>Añadir Gasto</button>
 
-                <table>
+                <table className="tabla-gastos">
                     <thead>
                         <tr>
                             <th>Descripción</th>

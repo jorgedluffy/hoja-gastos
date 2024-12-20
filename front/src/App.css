@@ -1,0 +1,52 @@
+.app {
+    font-family: Arial, sans-serif;
+    background-color: #f0f8ff;
+    /* Fondo frío */
+    color: #333;
+    padding: 20px;
+}
+
+.titulo {
+    text-align: center;
+    color: #2f4f4f;
+}
+
+.categorias,
+.filtros,
+.gastos {
+    margin-bottom: 30px;
+}
+
+.filtros-container {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.tabla-gastos {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.tabla-gastos th,
+.tabla-gastos td {
+    border: 1px solid #ccc;
+    /* Separación de las celdas */
+    padding: 10px;
+    text-align: left;
+}
+
+.tabla-gastos th {
+    background-color: #d0e0f0;
+    /* Fondo frío para encabezados */
+}
+
+.dialog {
+    padding: 20px;
+    text-align: center;
+}
+
+.dialog-buttons button {
+    margin: 5px;
+}
