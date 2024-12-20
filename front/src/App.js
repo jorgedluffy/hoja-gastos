@@ -1,15 +1,16 @@
 // Frontend: React
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { Dialog } from '@mui/material';
 
 const App = () => {
     const [categorias, setCategorias] = useState([]);
     const [gastos, setGastos] = useState([]);
-    const [nuevaCategoria, setNuevaCategoria] = useState('');
     const [nuevoGasto, setNuevoGasto] = useState({ descripcion: '', cantidad: '', categoria: '' });
-    const [filtroCategoria, setFiltroCategoria] = useState('');
-    const [filtroCantidad, setFiltroCantidad] = useState('');
-    const [filtroFecha, setFiltroFecha] = useState('');
+    const [filtros, setFiltros] = useState({ categoria: '', cantidad: '', fecha: '' });
+
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [nuevaCategoria, setNuevaCategoria] = useState('');
 
     // Load data from backend
     useEffect(() => {
@@ -31,11 +32,12 @@ const App = () => {
         const res = await axios.post('http://localhost:5000/categorias', { nombre: nuevaCategoria });
         setCategorias([...categorias, res.data]);
         setNuevaCategoria('');
+        setDialogOpen(false);
     };
 
     const handleAddGasto = async () => {
         if (!nuevoGasto.descripcion.trim() || parseFloat(nuevoGasto.cantidad) <= 0 || !nuevoGasto.categoria) {
-            alert('Por favor, completa todos los campos correctamente: descripción no vacía, Cantidad mayor a 0 y categoría seleccionada.');
+            alert('Por favor, completa todos los campos correctamente: descripción no vacía, cantidad mayor a 0 y categoría seleccionada.');
             return;
         }
         const res = await axios.post('http://localhost:5000/gastos', nuevoGasto);
@@ -46,9 +48,9 @@ const App = () => {
     // Filtrar gastos según criterios
     const filtrarGastos = () => {
         return gastos.filter((gasto) => {
-            const cumpleCategoria = filtroCategoria ? gasto.categoria?._id === filtroCategoria : true;
-            const cumpleCantidad = filtroCantidad ? parseFloat(gasto.cantidad) >= parseFloat(filtroCantidad) : true;
-            const cumpleFecha = filtroFecha ? new Date(gasto.fecha).toLocaleDateString() === filtroFecha : true;
+            const cumpleCategoria = filtros.categoria ? gasto.categoria?._id === filtros.categoria : true;
+            const cumpleCantidad = filtros.cantidad ? parseFloat(gasto.cantidad) >= parseFloat(filtros.cantidad) : true;
+            const cumpleFecha = filtros.fecha ? new Date(gasto.fecha).toLocaleDateString() === filtros.fecha : true;
             return cumpleCategoria && cumpleCantidad && cumpleFecha;
         });
     };
@@ -59,13 +61,7 @@ const App = () => {
 
             <section>
                 <h2>Categorías</h2>
-                <input
-                    type="text"
-                    placeholder="Nueva categoría"
-                    value={nuevaCategoria}
-                    onChange={(e) => setNuevaCategoria(e.target.value)}
-                />
-                <button onClick={handleAddCategoria}>Añadir Categoría</button>
+                <button onClick={() => setDialogOpen(true)}>Añadir Categoría</button>
                 <ul>
                     {categorias.map((cat) => (
                         <li key={cat._id}>{cat.nombre}</li>
@@ -73,38 +69,56 @@ const App = () => {
                 </ul>
             </section>
 
+            <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+                <div style={{ padding: '20px', textAlign: 'center' }}>
+                    <h3>Nueva Categoría</h3>
+                    <input
+                        type="text"
+                        placeholder="Nueva categoría"
+                        value={nuevaCategoria}
+                        onChange={(e) => setNuevaCategoria(e.target.value)}
+                    />
+                    <div style={{ marginTop: '20px' }}>
+                        <button onClick={() => setDialogOpen(false)}>Cancelar</button>
+                        <button onClick={handleAddCategoria}>Aceptar</button>
+                    </div>
+                </div>
+            </Dialog>
+
             <section>
                 <h2>Filtrar Gastos</h2>
-                <div>
-                    <label>Categoría:</label>
-                    <select
-                        value={filtroCategoria}
-                        onChange={(e) => setFiltroCategoria(e.target.value)}
-                    >
-                        <option value="">Todas</option>
-                        {categorias.map((cat) => (
-                            <option key={cat._id} value={cat._id}>
-                                {cat.nombre}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label>Cantidad mínimo:</label>
-                    <input
-                        type="number"
-                        placeholder="Cantidad mínimo"
-                        value={filtroCantidad}
-                        onChange={(e) => setFiltroCantidad(e.target.value)}
-                    />
-                </div>
-                <div>
-                    <label>Fecha:</label>
-                    <input
-                        type="date"
-                        value={filtroFecha}
-                        onChange={(e) => setFiltroFecha(e.target.value)}
-                    />
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <div>
+                        <label>Categoría:</label>
+                        <select
+                            value={filtros.categoria}
+                            onChange={(e) => setFiltros({ ...filtros, categoria: e.target.value })}
+                        >
+                            <option value="">Todas</option>
+                            {categorias.map((cat) => (
+                                <option key={cat._id} value={cat._id}>
+                                    {cat.nombre}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label>Cantidad mínima:</label>
+                        <input
+                            type="number"
+                            placeholder="Cantidad mínima"
+                            value={filtros.cantidad}
+                            onChange={(e) => setFiltros({ ...filtros, cantidad: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <label>Fecha:</label>
+                        <input
+                            type="date"
+                            value={filtros.fecha}
+                            onChange={(e) => setFiltros({ ...filtros, fecha: e.target.value })}
+                        />
+                    </div>
                 </div>
             </section>
 
