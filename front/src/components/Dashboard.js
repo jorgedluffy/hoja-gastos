@@ -4,35 +4,22 @@ import { Dialog } from '@mui/material';
 import './Dashboard.css';
 
 const Dashboard = () => {
-    const [categorias, setCategorias] = useState([]);
     const [gastos, setGastos] = useState([]);
+    const [categorias, setCategorias] = useState([]); // Solo para usarlas en el selector de gastos
     const [nuevoGasto, setNuevoGasto] = useState({ descripcion: '', cantidad: '', categoria: '' });
     const [filtros, setFiltros] = useState({ categoria: '', cantidad: '', fecha: '' });
-
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [nuevaCategoria, setNuevaCategoria] = useState('');
     const [dialogGastoOpen, setDialogGastoOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             const categoriasRes = await axios.get('http://localhost:5000/categorias');
             setCategorias(categoriasRes.data);
+
             const gastosRes = await axios.get('http://localhost:5000/gastos');
             setGastos(gastosRes.data);
         };
         fetchData();
     }, []);
-
-    const handleAddCategoria = async () => {
-        if (!nuevaCategoria.trim()) {
-            alert('El nombre de la categoría no puede estar vacío.');
-            return;
-        }
-        const res = await axios.post('http://localhost:5000/categorias', { nombre: nuevaCategoria });
-        setCategorias([...categorias, res.data]);
-        setNuevaCategoria('');
-        setDialogOpen(false);
-    };
 
     const handleAddGasto = async () => {
         if (!nuevoGasto.descripcion.trim() || parseFloat(nuevoGasto.cantidad) <= 0 || !nuevoGasto.categoria) {
@@ -69,32 +56,8 @@ const Dashboard = () => {
     return (
         <div className="dashboard">
             <h1>Dashboard</h1>
-            <section className="categorias">
-                <h2>Categorías</h2>
-                <button onClick={() => setDialogOpen(true)}>Añadir Categoría</button>
-                <ul>
-                    {categorias.map((cat) => (
-                        <li key={cat._id}>{cat.nombre}</li>
-                    ))}
-                </ul>
-            </section>
 
-            <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-                <div className="dialog">
-                    <h3>Nueva Categoría</h3>
-                    <input
-                        type="text"
-                        placeholder="Nueva categoría"
-                        value={nuevaCategoria}
-                        onChange={(e) => setNuevaCategoria(e.target.value)}
-                    />
-                    <div className="dialog-buttons">
-                        <button onClick={() => setDialogOpen(false)}>Cancelar</button>
-                        <button onClick={handleAddCategoria}>Aceptar</button>
-                    </div>
-                </div>
-            </Dialog>
-
+            {/* Filtros */}
             <section className="filtros">
                 <h2>Filtrar Gastos</h2>
                 <div className="filtros-container">
@@ -132,10 +95,12 @@ const Dashboard = () => {
                 </div>
             </section>
 
+            {/* Gastos */}
             <section className="gastos">
                 <h2>Gastos</h2>
                 <button onClick={() => setDialogGastoOpen(true)}>Añadir Gasto</button>
 
+                {/* Diálogo para añadir gasto */}
                 <Dialog open={dialogGastoOpen} onClose={() => setDialogGastoOpen(false)}>
                     <div className="dialog">
                         <h3>Nuevo Gasto</h3>
@@ -169,6 +134,7 @@ const Dashboard = () => {
                     </div>
                 </Dialog>
 
+                {/* Tabla de gastos */}
                 <table className="tabla-gastos">
                     <thead>
                         <tr>

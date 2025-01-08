@@ -1,0 +1,19 @@
+.navbar {
+    background-color: #1976d2;
+    /* Fondo azul */
+    display: flex;
+    justify-content: flex-start;
+    /* Alineación de los elementos */
+    align-items: center;
+    /* Centrado vertical */
+    padding: 0 20px;
+    /* Espaciado extra en los lados */
+}
+
+.button {
+    margin: 0 10px;
+    color: white !important;
+    /* Asegura que el color sea blanco */
+    font-weight: bold;
+    text-transform: none;
+}

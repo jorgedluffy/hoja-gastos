@@ -1,31 +1,26 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
-import Graficos from './pages/Graficos';
+import Dashboard from './components/Dashboard';
+import Graficos from './components/Graficos';
+import Categorias from './components/Categorias';
+import Navbar from './components/Navbar';
 
 const App = () => {
     return (
         <Router>
             <nav>
-                <ul>
-                    <li>
-                        <Link to="/">Inicio</Link>
-                    </li>
-                    <li>
-                        <Link to="/dashboard">Dashboard</Link>
-                    </li>
-                    <li>
-                        <Link to="/graficos">Gráficos</Link>
-                    </li>
-                </ul>
+                <Navbar />
             </nav>
             <Routes>
                 <Route path="/" element={<h1>Bienvenido al Gestor de Gastos</h1>} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/graficos" element={<Graficos />} />
+                <Route path="/categorias" element={<Categorias />} />
             </Routes>
         </Router>
     );
 };
 
 export default App;
+//TODO FILTROS PARA GRAFICOS, TOTAL EN DASHBORAD POR FILTRADO, CSV
+//crud + comprobar existencia categoria antes de crear
