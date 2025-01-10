@@ -18,6 +18,7 @@ const Dashboard = () => {
             const categoriasRes = await axios.get('http://localhost:5000/categorias');
             setCategorias(categoriasRes.data);
             const gastosRes = await axios.get('http://localhost:5000/gastos');
+            console.log(gastosRes.data)
             setGastos(gastosRes.data);
         };
         fetchData();
@@ -98,6 +99,43 @@ const Dashboard = () => {
     return (
         <div className="dashboard">
             <h1>Dashboard</h1>
+            {/* Filtros para gastos */}
+            <section className="filtros">
+                <h2>Filtrar Gastos</h2>
+                <div className="filtros-container">
+                    <div>
+                        <label>Categoría:</label>
+                        <select
+                            value={filtros.categoria}
+                            onChange={(e) => setFiltros({ ...filtros, categoria: e.target.value })}
+                        >
+                            <option value="">Todas</option>
+                            {categorias.map((cat) => (
+                                <option key={cat._id} value={cat._id}>
+                                    {cat.nombre}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label>Cantidad mínima:</label>
+                        <input
+                            type="number"
+                            placeholder="Cantidad mínima"
+                            value={filtros.cantidad}
+                            onChange={(e) => setFiltros({ ...filtros, cantidad: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <label>Fecha:</label>
+                        <input
+                            type="date"
+                            value={filtros.fecha}
+                            onChange={(e) => setFiltros({ ...filtros, fecha: e.target.value })}
+                        />
+                    </div>
+                </div>
+            </section>
 
             <section className="gastos">
                 <h2>Gastos</h2>
@@ -171,7 +209,7 @@ const Dashboard = () => {
 
             {/* Dialogo para editar gasto */}
             {editarGasto && (
-                <Dialog open={!!editarGasto} onClose={() => setEditarGasto(null)}>
+                < Dialog open={!!editarGasto} onClose={() => setEditarGasto(null)}>
                     <div className="dialog">
                         <h3>Editar Gasto</h3>
                         <input
@@ -187,10 +225,9 @@ const Dashboard = () => {
                             onChange={(e) => setEditarGasto({ ...editarGasto, cantidad: e.target.value })}
                         />
                         <select
-                            value={editarGasto.categoria}
+                            value={editarGasto.categoria?._id}
                             onChange={(e) => setEditarGasto({ ...editarGasto, categoria: e.target.value })}
                         >
-                            <option value="">Seleccione Categoría</option>
                             {categorias.map((cat) => (
                                 <option key={cat._id} value={cat._id}>
                                     {cat.nombre}
@@ -203,9 +240,11 @@ const Dashboard = () => {
                         </div>
                     </div>
                 </Dialog>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 };
 
 export default Dashboard;
+
