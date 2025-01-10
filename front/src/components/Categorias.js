@@ -44,8 +44,13 @@ const Categorias = () => {
 
 
     const handleDeleteCategoria = async (id) => {
-        await axios.delete(`http://localhost:5000/categorias/${id}`);
-        setCategorias(categorias.filter((cat) => cat._id !== id));
+        window.alert('ID enviado para eliminar:' + id, id); // Log del ID
+        try {
+            await axios.delete(`http://localhost:5000/categorias/${id}`);
+            setCategorias(categorias.filter((cat) => cat._id !== id));
+        } catch (error) {
+            console.error(error); // Para más información del error
+        }
     };
 
     return (
