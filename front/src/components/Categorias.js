@@ -20,11 +20,28 @@ const Categorias = () => {
             alert('El nombre de la categoría no puede estar vacío.');
             return;
         }
-        const res = await axios.post('http://localhost:5000/categorias', { nombre: nuevaCategoria });
-        setCategorias([...categorias, res.data]);
-        setNuevaCategoria('');
-        setDialogOpen(false);
+
+        // Verificar si la categoría ya existe
+        const categoriaExistente = categorias.find(
+            (cat) => cat.nombre.toLowerCase() === nuevaCategoria.toLowerCase()
+        );
+
+        if (categoriaExistente) {
+            alert('La categoría ya existe. Por favor, añade una nueva.');
+            return;
+        }
+
+        try {
+            const res = await axios.post('http://localhost:5000/categorias', { nombre: nuevaCategoria });
+            setCategorias([...categorias, res.data]);
+            setNuevaCategoria('');
+            setDialogOpen(false);
+        } catch (error) {
+            console.error('Error al agregar la categoría:', error);
+            alert('Hubo un error al agregar la categoría. Inténtalo de nuevo.');
+        }
     };
+
 
     const handleDeleteCategoria = async (id) => {
         await axios.delete(`http://localhost:5000/categorias/${id}`);
