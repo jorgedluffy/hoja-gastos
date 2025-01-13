@@ -29,7 +29,57 @@ const GastoSchema = new mongoose.Schema({
 
 const Categoria = mongoose.model('Categoria', CategoriaSchema);
 const Gasto = mongoose.model('Gasto', GastoSchema);
+//************************************************************************************************ 
+//CSV
+const multer = require('multer');
+const csvParser = require('csv-parser');
+const fs = require('fs');
 
+// Configurar almacenamiento de multer
+const upload = multer({ dest: 'uploads/' });
+
+// Ruta para procesar el archivo CSV
+app.post('/cargar-csv', upload.single('file'), async (req, res) => {
+    const filePath = req.file.path;
+
+    const results = [];
+    try {
+        // Leer y procesar el archivo CSV
+        fs.createReadStream(filePath)
+            .pipe(csvParser())
+            .on('data', (data) => results.push(data))
+            .on('end', async () => {
+                fs.unlinkSync(filePath); // Eliminar archivo temporal
+
+                // Procesar los datos e insertarlos en la base de datos
+                for (const item of results) {
+                    const { descripcion, cantidad, categoria } = item;
+
+                    // Buscar categoría o crearla
+                    let categoriaDoc = await Categoria.findOne({ nombre: categoria });
+                    if (!categoriaDoc) {
+                        categoriaDoc = new Categoria({ nombre: categoria });
+                        await categoriaDoc.save();
+                    }
+
+                    // Crear gasto
+                    const nuevoGasto = new Gasto({
+                        descripcion,
+                        cantidad: parseFloat(cantidad),
+                        categoria: categoriaDoc._id,
+                    });
+                    await nuevoGasto.save();
+                }
+
+                res.json({ mensaje: 'Datos importados exitosamente', datos: results });
+            });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error al procesar el archivo' });
+    }
+});
+
+//************************************************************************************************ 
 // ** Rutas API **
 
 // Categorías

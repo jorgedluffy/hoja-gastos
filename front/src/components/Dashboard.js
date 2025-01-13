@@ -5,6 +5,7 @@ import { FaTrash, FaEdit } from 'react-icons/fa'; // Importar iconos
 import './Dashboard.css';
 
 const Dashboard = () => {
+    const [file, setFile] = useState(null);
     const [categorias, setCategorias] = useState([]);
     const [gastos, setGastos] = useState([]);
     const [nuevoGasto, setNuevoGasto] = useState({ descripcion: '', cantidad: '', categoria: '' });
@@ -23,6 +24,31 @@ const Dashboard = () => {
         };
         fetchData();
     }, []);
+
+    //CSV
+    const handleFileUpload = async (e) => {
+        e.preventDefault();
+        if (!file) {
+            alert('Por favor, selecciona un archivo CSV.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await axios.post('http://localhost:5000/cargar-csv', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            alert('Datos cargados exitosamente');
+            console.log(res.data);
+        } catch (error) {
+            console.error('Error al cargar el archivo:', error);
+            alert('Error al cargar el archivo.');
+        }
+    };
 
     // Añadir nuevo gasto
     const handleAddGasto = async () => {
@@ -99,6 +125,14 @@ const Dashboard = () => {
     return (
         <div className="dashboard">
             <h1>Dashboard</h1>
+            <form onSubmit={handleFileUpload}>
+                <input
+                    type="file"
+                    accept=".csv"
+                    onChange={(e) => setFile(e.target.files[0])}
+                />
+                <button type="submit">Cargar CSV</button>
+            </form>
             {/* Filtros para gastos */}
             <section className="filtros">
                 <h2>Filtrar Gastos</h2>
