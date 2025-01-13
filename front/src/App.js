@@ -22,5 +22,5 @@ const App = () => {
 };
 
 export default App;
-//TODO FILTROS PARA GRAFICOS, TOTAL EN DASHBORAD POR FILTRADO, CSV
+//TODO FILTROS PARA GRAFICOS, TOTAL EN DASHBORAD POR FILTRADO
 //DASHBOARD: Usar un solo modal para editar/añadir gasto y sacarlo a un componente

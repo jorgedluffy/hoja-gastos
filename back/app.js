@@ -146,9 +146,20 @@ app.post('/categorias', async (req, res) => {
 // Gastos
 app.get('/gastos', async (req, res) => {
     try {
-        const gastos = await Gasto.find().populate('categoria');
+        const { fechaInicio, fechaFin } = req.query;
+
+        let filtro = {};
+        if (fechaInicio && fechaFin) {
+            filtro.fecha = {
+                $gte: new Date(fechaInicio),
+                $lte: new Date(fechaFin),
+            };
+        }
+
+        const gastos = await Gasto.find(filtro).populate('categoria');
         res.json(gastos);
-    } catch (err) {
+    } catch (error) {
+        console.error('Error al obtener los gastos:', error.message);
         res.status(500).json({ error: 'Error al obtener los gastos' });
     }
 });

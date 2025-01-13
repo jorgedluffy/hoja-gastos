@@ -12,7 +12,7 @@ const Dashboard = () => {
     const [gastos, setGastos] = useState([]);
     const [nuevoGasto, setNuevoGasto] = useState({ descripcion: '', cantidad: '', categoria: '' });
     const [editarGasto, setEditarGasto] = useState(null);
-    const [filtros, setFiltros] = useState({ categoria: '', cantidad: '', fecha: '' });
+    const [filtros, setFiltros] = useState({ categoria: '', cantidad: '', fechaInicio: '', fechaFin: '' });
 
     const [dialogGastoOpen, setDialogGastoOpen] = useState(false);
 
@@ -125,7 +125,10 @@ const Dashboard = () => {
         return gastos.filter((gasto) => {
             const cumpleCategoria = filtros.categoria ? gasto.categoria?._id === filtros.categoria : true;
             const cumpleCantidad = filtros.cantidad ? parseFloat(gasto.cantidad) >= parseFloat(filtros.cantidad) : true;
-            const cumpleFecha = filtros.fecha ? new Date(gasto.fecha).toLocaleDateString() === filtros.fecha : true;
+            const cumpleFecha = (filtros.fechaInicio || filtros.fechaFin)
+                ? new Date(gasto.fecha) >= new Date(filtros.fechaInicio) &&
+                new Date(gasto.fecha) <= new Date(filtros.fechaFin)
+                : true;
             return cumpleCategoria && cumpleCantidad && cumpleFecha;
         });
     };
@@ -176,11 +179,19 @@ const Dashboard = () => {
                         />
                     </div>
                     <div>
-                        <label>Fecha:</label>
+                        <label>Fecha Desde:</label>
                         <input
                             type="date"
-                            value={filtros.fecha}
-                            onChange={(e) => setFiltros({ ...filtros, fecha: e.target.value })}
+                            value={filtros.fechaInicio}
+                            onChange={(e) => setFiltros({ ...filtros, fechaInicio: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <label>Fecha Hasta:</label>
+                        <input
+                            type="date"
+                            value={filtros.fechaFin}
+                            onChange={(e) => setFiltros({ ...filtros, fechaFin: e.target.value })}
                         />
                     </div>
                 </div>
