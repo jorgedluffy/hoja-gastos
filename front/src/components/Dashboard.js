@@ -6,6 +6,8 @@ import './Dashboard.css';
 
 const Dashboard = () => {
     const [file, setFile] = useState(null);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
     const [categorias, setCategorias] = useState([]);
     const [gastos, setGastos] = useState([]);
     const [nuevoGasto, setNuevoGasto] = useState({ descripcion: '', cantidad: '', categoria: '' });
@@ -28,8 +30,9 @@ const Dashboard = () => {
     //CSV
     const handleFileUpload = async (e) => {
         e.preventDefault();
+
         if (!file) {
-            alert('Por favor, selecciona un archivo CSV.');
+            setError('Por favor, selecciona un archivo CSV.');
             return;
         }
 
@@ -37,16 +40,21 @@ const Dashboard = () => {
         formData.append('file', file);
 
         try {
+            setError('');
+            setSuccess('');
             const res = await axios.post('http://localhost:5000/cargar-csv', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            alert('Datos cargados exitosamente');
-            console.log(res.data);
-        } catch (error) {
-            console.error('Error al cargar el archivo:', error);
-            alert('Error al cargar el archivo.');
+
+            setSuccess(`Datos cargados exitosamente: ${res.data.total} registros procesados.`);
+            setFile(null);
+        } catch (err) {
+            console.error('Error al cargar el archivo:', err);
+            setError(
+                err.response?.data?.error || 'Error desconocido. Verifica el formato del archivo y vuelve a intentarlo.'
+            );
         }
     };
 
@@ -129,10 +137,17 @@ const Dashboard = () => {
                 <input
                     type="file"
                     accept=".csv"
-                    onChange={(e) => setFile(e.target.files[0])}
+                    onChange={(e) => {
+                        setFile(e.target.files[0]);
+                        setError('');
+                        setSuccess('');
+                    }}
                 />
                 <button type="submit">Cargar CSV</button>
             </form>
+
+            {error && <div style={{ color: 'red' }}>{error}</div>}
+            {success && <div style={{ color: 'green' }}>{success}</div>}
             {/* Filtros para gastos */}
             <section className="filtros">
                 <h2>Filtrar Gastos</h2>

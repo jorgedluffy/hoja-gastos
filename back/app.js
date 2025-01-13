@@ -36,46 +36,79 @@ const csvParser = require('csv-parser');
 const fs = require('fs');
 
 // Configurar almacenamiento de multer
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({
+    dest: 'uploads/',
+    limits: { fileSize: 5 * 1024 * 1024 }, // Límite de archivo: 5 MB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === 'text/csv') {
+            cb(null, true);
+        } else {
+            cb(new Error('Solo se permiten archivos CSV'));
+        }
+    },
+});
 
-// Ruta para procesar el archivo CSV
 app.post('/cargar-csv', upload.single('file'), async (req, res) => {
-    const filePath = req.file.path;
+    const filePath = req.file?.path;
+
+    if (!filePath) {
+        return res.status(400).json({ error: 'Archivo no recibido' });
+    }
 
     const results = [];
     try {
-        // Leer y procesar el archivo CSV
         fs.createReadStream(filePath)
             .pipe(csvParser())
-            .on('data', (data) => results.push(data))
+            .on('data', (data) => {
+                // Validar que los campos necesarios existan
+                if (!data.descripcion || !data.cantidad || !data.categoria) {
+                    throw new Error('Archivo CSV con formato inválido. Faltan campos obligatorios.');
+                }
+                results.push(data);
+            })
             .on('end', async () => {
                 fs.unlinkSync(filePath); // Eliminar archivo temporal
 
-                // Procesar los datos e insertarlos en la base de datos
-                for (const item of results) {
-                    const { descripcion, cantidad, categoria } = item;
+                try {
+                    // Guardar datos en la base de datos
+                    for (const item of results) {
+                        const { descripcion, cantidad, categoria } = item;
 
-                    // Buscar categoría o crearla
-                    let categoriaDoc = await Categoria.findOne({ nombre: categoria });
-                    if (!categoriaDoc) {
-                        categoriaDoc = new Categoria({ nombre: categoria });
-                        await categoriaDoc.save();
+                        // Validar formato de datos
+                        if (isNaN(cantidad) || parseFloat(cantidad) <= 0) {
+                            throw new Error(`El campo cantidad "${cantidad}" no es válido.`);
+                        }
+
+                        // Buscar o crear la categoría
+                        let categoriaDoc = await Categoria.findOne({ nombre: categoria });
+                        if (!categoriaDoc) {
+                            categoriaDoc = new Categoria({ nombre: categoria });
+                            await categoriaDoc.save();
+                        }
+
+                        // Crear y guardar el gasto
+                        const nuevoGasto = new Gasto({
+                            descripcion,
+                            cantidad: parseFloat(cantidad),
+                            categoria: categoriaDoc._id,
+                        });
+                        await nuevoGasto.save();
                     }
 
-                    // Crear gasto
-                    const nuevoGasto = new Gasto({
-                        descripcion,
-                        cantidad: parseFloat(cantidad),
-                        categoria: categoriaDoc._id,
-                    });
-                    await nuevoGasto.save();
+                    res.status(201).json({ mensaje: 'Datos importados exitosamente', total: results.length });
+                } catch (error) {
+                    console.error('Error al guardar los datos en la base de datos:', error.message);
+                    res.status(500).json({ error: error.message });
                 }
-
-                res.json({ mensaje: 'Datos importados exitosamente', datos: results });
+            })
+            .on('error', (err) => {
+                console.error('Error al procesar el archivo CSV:', err.message);
+                res.status(400).json({ error: err.message });
             });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Error al procesar el archivo' });
+    } catch (error) {
+        console.error('Error general:', error.message);
+        fs.unlinkSync(filePath); // Asegurar limpieza del archivo
+        res.status(500).json({ error: 'Error al procesar el archivo CSV' });
     }
 });
 
