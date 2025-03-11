@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Dialog } from '@mui/material';
 import { FaTrash, FaEdit } from 'react-icons/fa'; // Importar iconos
 import './Dashboard.css';
+import GastoModal from './GastoModal';
 
 const Dashboard = () => {
     const [file, setFile] = useState(null);
@@ -10,106 +10,55 @@ const Dashboard = () => {
     const [success, setSuccess] = useState('');
     const [categorias, setCategorias] = useState([]);
     const [gastos, setGastos] = useState([]);
-    const [nuevoGasto, setNuevoGasto] = useState({ descripcion: '', cantidad: '', categoria: '' });
-    const [editarGasto, setEditarGasto] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [gastoSeleccionado, setGastoSeleccionado] = useState(null);
     const [filtros, setFiltros] = useState({ categoria: '', cantidad: '', fechaInicio: '', fechaFin: '' });
-
-    const [dialogGastoOpen, setDialogGastoOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             const categoriasRes = await axios.get('http://localhost:5000/categorias');
             setCategorias(categoriasRes.data);
             const gastosRes = await axios.get('http://localhost:5000/gastos');
-            console.log(gastosRes.data)
             setGastos(gastosRes.data);
         };
         fetchData();
     }, []);
 
-    //CSV
+    // Manejo de archivos CSV
     const handleFileUpload = async (e) => {
         e.preventDefault();
-
         if (!file) {
             setError('Por favor, selecciona un archivo CSV.');
             return;
         }
-
         const formData = new FormData();
         formData.append('file', file);
-
         try {
             setError('');
             setSuccess('');
             const res = await axios.post('http://localhost:5000/cargar-csv', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
+                headers: { 'Content-Type': 'multipart/form-data' },
             });
-
             setSuccess(`Datos cargados exitosamente: ${res.data.total} registros procesados.`);
             setFile(null);
         } catch (err) {
-            console.error('Error al cargar el archivo:', err);
-            setError(
-                err.response?.data?.error || 'Error desconocido. Verifica el formato del archivo y vuelve a intentarlo.'
-            );
+            setError(err.response?.data?.error || 'Error desconocido. Verifica el formato del archivo.');
         }
     };
 
-    // Añadir nuevo gasto
-    const handleAddGasto = async () => {
-        if (!nuevoGasto.descripcion.trim() || parseFloat(nuevoGasto.cantidad) <= 0 || !nuevoGasto.categoria) {
-            alert('Por favor, completa todos los campos correctamente.');
-            return;
-        }
-
-        const categoriaSeleccionada = categorias.find((cat) => cat._id === nuevoGasto.categoria);
-        if (!categoriaSeleccionada) {
-            alert('La categoría seleccionada no es válida.');
-            return;
-        }
-
-        try {
-            const gastoData = { ...nuevoGasto, categoria: categoriaSeleccionada._id };
-            const res = await axios.post('http://localhost:5000/gastos', gastoData);
-            setGastos([...gastos, { ...res.data, categoria: categoriaSeleccionada }]);
-            setNuevoGasto({ descripcion: '', cantidad: '', categoria: '' });
-            setDialogGastoOpen(false);
-        } catch (error) {
-            console.error('Error al agregar el gasto:', error);
-        }
+    // Abrir modal para añadir o editar gasto
+    const abrirModal = (gasto = null) => {
+        setGastoSeleccionado(gasto);
+        setModalOpen(true);
     };
 
-    // Editar gasto
-    const handleEditGasto = async () => {
-        if (!editarGasto.descripcion.trim() || parseFloat(editarGasto.cantidad) <= 0 || !editarGasto.categoria) {
-            alert('Por favor, completa todos los campos correctamente.');
-            return;
-        }
-
-        const categoriaSeleccionada = categorias.find((cat) => cat._id === editarGasto.categoria);
-        if (!categoriaSeleccionada) {
-            alert('La categoría seleccionada no es válida.');
-            return;
-        }
-
-        try {
-            const gastoData = { ...editarGasto, categoria: categoriaSeleccionada._id };
-            const res = await axios.put(`http://localhost:5000/gastos/${editarGasto._id}`, gastoData);
-            setGastos(
-                gastos.map((gasto) =>
-                    gasto._id === editarGasto._id ? { ...res.data, categoria: categoriaSeleccionada } : gasto
-                )
-            );
-            setEditarGasto(null);
-        } catch (error) {
-            console.error('Error al editar el gasto:', error);
-        }
+    // Cerrar modal
+    const cerrarModal = () => {
+        setModalOpen(false);
+        setGastoSeleccionado(null);
     };
 
-    // Eliminar gasto
+    // Manejo de eliminación
     const handleDeleteGasto = async (id) => {
         if (window.confirm('¿Estás seguro de que deseas eliminar este gasto?')) {
             try {
@@ -121,13 +70,13 @@ const Dashboard = () => {
         }
     };
 
+    // Filtrar gastos
     const filtrarGastos = () => {
         return gastos.filter((gasto) => {
             const cumpleCategoria = filtros.categoria ? gasto.categoria?._id === filtros.categoria : true;
             const cumpleCantidad = filtros.cantidad ? parseFloat(gasto.cantidad) >= parseFloat(filtros.cantidad) : true;
-            const cumpleFecha = (filtros.fechaInicio || filtros.fechaFin)
-                ? new Date(gasto.fecha) >= new Date(filtros.fechaInicio) &&
-                new Date(gasto.fecha) <= new Date(filtros.fechaFin)
+            const cumpleFecha = (filtros.fechaInicio && filtros.fechaFin) ?
+                (new Date(gasto.fecha) >= new Date(filtros.fechaInicio) && new Date(gasto.fecha) <= new Date(filtros.fechaFin))
                 : true;
             return cumpleCategoria && cumpleCantidad && cumpleFecha;
         });
@@ -148,92 +97,35 @@ const Dashboard = () => {
                 />
                 <button type="submit">Cargar CSV</button>
             </form>
-
             {error && <div style={{ color: 'red' }}>{error}</div>}
             {success && <div style={{ color: 'green' }}>{success}</div>}
-            {/* Filtros para gastos */}
+
+            {/* Filtros */}
             <section className="filtros">
                 <h2>Filtrar Gastos</h2>
                 <div className="filtros-container">
-                    <div>
-                        <label>Categoría:</label>
-                        <select
-                            value={filtros.categoria}
-                            onChange={(e) => setFiltros({ ...filtros, categoria: e.target.value })}
-                        >
+                    <label>Categoría:
+                        <select value={filtros.categoria} onChange={(e) => setFiltros({ ...filtros, categoria: e.target.value })}>
                             <option value="">Todas</option>
-                            {categorias.map((cat) => (
-                                <option key={cat._id} value={cat._id}>
-                                    {cat.nombre}
-                                </option>
-                            ))}
+                            {categorias.map((cat) => <option key={cat._id} value={cat._id}>{cat.nombre}</option>)}
                         </select>
-                    </div>
-                    <div>
-                        <label>Cantidad mínima:</label>
-                        <input
-                            type="number"
-                            placeholder="Cantidad mínima"
-                            value={filtros.cantidad}
-                            onChange={(e) => setFiltros({ ...filtros, cantidad: e.target.value })}
-                        />
-                    </div>
-                    <div>
-                        <label>Fecha Desde:</label>
-                        <input
-                            type="date"
-                            value={filtros.fechaInicio}
-                            onChange={(e) => setFiltros({ ...filtros, fechaInicio: e.target.value })}
-                        />
-                    </div>
-                    <div>
-                        <label>Fecha Hasta:</label>
-                        <input
-                            type="date"
-                            value={filtros.fechaFin}
-                            onChange={(e) => setFiltros({ ...filtros, fechaFin: e.target.value })}
-                        />
-                    </div>
+                    </label>
+                    <label>Cantidad mínima:
+                        <input type="number" value={filtros.cantidad} onChange={(e) => setFiltros({ ...filtros, cantidad: e.target.value })} />
+                    </label>
+                    <label>Fecha desde:
+                        <input type="date" value={filtros.fechaInicio} onChange={(e) => setFiltros({ ...filtros, fechaInicio: e.target.value })} />
+                    </label>
+                    <label>Fecha hasta:
+                        <input type="date" value={filtros.fechaFin} onChange={(e) => setFiltros({ ...filtros, fechaFin: e.target.value })} />
+                    </label>
                 </div>
             </section>
 
+            {/* Tabla de gastos */}
             <section className="gastos">
                 <h2>Gastos</h2>
-                <button onClick={() => setDialogGastoOpen(true)}>Añadir Gasto</button>
-
-                <Dialog open={dialogGastoOpen} onClose={() => setDialogGastoOpen(false)}>
-                    <div className="dialog">
-                        <h3>Nuevo Gasto</h3>
-                        <input
-                            type="text"
-                            placeholder="Descripción"
-                            value={nuevoGasto.descripcion}
-                            onChange={(e) => setNuevoGasto({ ...nuevoGasto, descripcion: e.target.value })}
-                        />
-                        <input
-                            type="number"
-                            placeholder="Cantidad"
-                            value={nuevoGasto.cantidad}
-                            onChange={(e) => setNuevoGasto({ ...nuevoGasto, cantidad: e.target.value })}
-                        />
-                        <select
-                            value={nuevoGasto.categoria}
-                            onChange={(e) => setNuevoGasto({ ...nuevoGasto, categoria: e.target.value })}
-                        >
-                            <option value="">Seleccione Categoría</option>
-                            {categorias.map((cat) => (
-                                <option key={cat._id} value={cat._id}>
-                                    {cat.nombre}
-                                </option>
-                            ))}
-                        </select>
-                        <div className="dialog-buttons">
-                            <button onClick={() => setDialogGastoOpen(false)}>Cancelar</button>
-                            <button onClick={handleAddGasto}>Aceptar</button>
-                        </div>
-                    </div>
-                </Dialog>
-
+                <button onClick={() => abrirModal()}>Añadir Gasto</button>
                 <table className="tabla-gastos">
                     <thead>
                         <tr>
@@ -252,14 +144,8 @@ const Dashboard = () => {
                                 <td>{gasto.categoria?.nombre}</td>
                                 <td>{new Date(gasto.fecha).toLocaleDateString()}</td>
                                 <td>
-                                    <FaEdit
-                                        className="icono-accion"
-                                        onClick={() => setEditarGasto({ ...gasto })}
-                                    />
-                                    <FaTrash
-                                        className="icono-accion"
-                                        onClick={() => handleDeleteGasto(gasto._id)}
-                                    />
+                                    <FaEdit className="icono-accion" onClick={() => abrirModal(gasto)} />
+                                    <FaTrash className="icono-accion" onClick={() => handleDeleteGasto(gasto._id)} />
                                 </td>
                             </tr>
                         ))}
@@ -267,44 +153,10 @@ const Dashboard = () => {
                 </table>
             </section>
 
-            {/* Dialogo para editar gasto */}
-            {editarGasto && (
-                < Dialog open={!!editarGasto} onClose={() => setEditarGasto(null)}>
-                    <div className="dialog">
-                        <h3>Editar Gasto</h3>
-                        <input
-                            type="text"
-                            placeholder="Descripción"
-                            value={editarGasto.descripcion}
-                            onChange={(e) => setEditarGasto({ ...editarGasto, descripcion: e.target.value })}
-                        />
-                        <input
-                            type="number"
-                            placeholder="Cantidad"
-                            value={editarGasto.cantidad}
-                            onChange={(e) => setEditarGasto({ ...editarGasto, cantidad: e.target.value })}
-                        />
-                        <select
-                            value={editarGasto.categoria?._id}
-                            onChange={(e) => setEditarGasto({ ...editarGasto, categoria: e.target.value })}
-                        >
-                            {categorias.map((cat) => (
-                                <option key={cat._id} value={cat._id}>
-                                    {cat.nombre}
-                                </option>
-                            ))}
-                        </select>
-                        <div className="dialog-buttons">
-                            <button onClick={() => setEditarGasto(null)}>Cancelar</button>
-                            <button onClick={handleEditGasto}>Aceptar</button>
-                        </div>
-                    </div>
-                </Dialog>
-            )
-            }
-        </div >
+            {/* Modal para añadir/editar gasto */}
+            {modalOpen && <GastoModal open={modalOpen} onClose={cerrarModal} gasto={gastoSeleccionado} categorias={categorias} setGastos={setGastos} gastos={gastos} />}
+        </div>
     );
 };
 
 export default Dashboard;
-
