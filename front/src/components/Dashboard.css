@@ -12,15 +12,31 @@
 }
 
 .categorias,
-.filtros,
-.gastos {
+.filtros.filtros {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Centra el título y los filtros */
+    margin-bottom: 20px;
+}
+
+.gastosTotal {
     margin-bottom: 30px;
+    display: flex;
+
+    justify-content: space-between;
+}
+
+.gastos {
+    margin-right: 100px;
 }
 
 .filtros-container {
     display: flex;
-    gap: 20px;
-    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    /* Espacio entre los filtros */
+    justify-content: center;
 }
 
 .tabla-gastos {

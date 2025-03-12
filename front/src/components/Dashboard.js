@@ -3,6 +3,7 @@ import axios from 'axios';
 import { FaTrash, FaEdit } from 'react-icons/fa'; // Importar iconos
 import './Dashboard.css';
 import GastoModal from './GastoModal';
+import TotalGastos from './TotalGastos';
 
 const Dashboard = () => {
     const [file, setFile] = useState(null);
@@ -123,9 +124,17 @@ const Dashboard = () => {
             </section>
 
             {/* Tabla de gastos */}
-            <section className="gastos">
-                <h2>Gastos</h2>
-                <button onClick={() => abrirModal()}>Añadir Gasto</button>
+            <section className="gastosTotal">
+
+                <section className="gastos">
+                    <h2>Gastos</h2>
+                    <button onClick={() => abrirModal()}>Añadir Gasto</button>
+
+                </section>
+                {/* Total Gastos */}
+                <TotalGastos gastos={filtrarGastos()} />
+            </section>
+            <section>
                 <table className="tabla-gastos">
                     <thead>
                         <tr>
@@ -152,6 +161,8 @@ const Dashboard = () => {
                     </tbody>
                 </table>
             </section>
+
+
 
             {/* Modal para añadir/editar gasto */}
             {modalOpen && <GastoModal open={modalOpen} onClose={cerrarModal} gasto={gastoSeleccionado} categorias={categorias} setGastos={setGastos} gastos={gastos} />}
