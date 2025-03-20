@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { FaTrash, FaEdit } from 'react-icons/fa'; // Importar iconos
+import React, { useEffect, useState } from 'react';
+import { FaEdit, FaTrash } from 'react-icons/fa'; // Importar iconos
 import './Dashboard.css';
 import GastoModal from './GastoModal';
 import TotalGastos from './TotalGastos';
@@ -15,15 +15,24 @@ const Dashboard = () => {
     const [gastoSeleccionado, setGastoSeleccionado] = useState(null);
     const [filtros, setFiltros] = useState({ categoria: '', cantidad: '', fechaInicio: '', fechaFin: '' });
 
-    useEffect(() => {
-        const fetchData = async () => {
+    // Función para obtener datos filtrados desde el backend
+    const fetchData = async () => {
+        try {
             const categoriasRes = await axios.get('http://localhost:5000/categorias');
             setCategorias(categoriasRes.data);
-            const gastosRes = await axios.get('http://localhost:5000/gastos');
+
+            const params = new URLSearchParams(filtros).toString(); // Convierte filtros en query string
+            const gastosRes = await axios.get(`http://localhost:5000/gastos?${params}`);
             setGastos(gastosRes.data);
-        };
+        } catch (error) {
+            console.error('Error al obtener los datos:', error);
+        }
+    };
+
+    // Llamar a fetchData cada vez que cambien los filtros
+    useEffect(() => {
         fetchData();
-    }, []);
+    }, [filtros]);
 
     // Manejo de archivos CSV
     const handleFileUpload = async (e) => {
@@ -42,6 +51,7 @@ const Dashboard = () => {
             });
             setSuccess(`Datos cargados exitosamente: ${res.data.total} registros procesados.`);
             setFile(null);
+            fetchData(); // Volver a obtener los datos después de cargar el CSV
         } catch (err) {
             setError(err.response?.data?.error || 'Error desconocido. Verifica el formato del archivo.');
         }
@@ -64,42 +74,41 @@ const Dashboard = () => {
         if (window.confirm('¿Estás seguro de que deseas eliminar este gasto?')) {
             try {
                 await axios.delete(`http://localhost:5000/gastos/${id}`);
-                setGastos(gastos.filter((gasto) => gasto._id !== id));
+                fetchData(); // Volver a obtener los datos después de eliminar un gasto
             } catch (error) {
                 console.error('Error al eliminar el gasto:', error);
             }
         }
     };
 
-    // Filtrar gastos
-    const filtrarGastos = () => {
-        return gastos.filter((gasto) => {
-            const cumpleCategoria = filtros.categoria ? gasto.categoria?._id === filtros.categoria : true;
-            const cumpleCantidad = filtros.cantidad ? parseFloat(gasto.cantidad) >= parseFloat(filtros.cantidad) : true;
-            const cumpleFecha = (filtros.fechaInicio && filtros.fechaFin) ?
-                (new Date(gasto.fecha) >= new Date(filtros.fechaInicio) && new Date(gasto.fecha) <= new Date(filtros.fechaFin))
-                : true;
-            return cumpleCategoria && cumpleCantidad && cumpleFecha;
-        });
-    };
-
     return (
         <div className="dashboard">
             <h1>Dashboard</h1>
-            <form onSubmit={handleFileUpload}>
-                <input
-                    type="file"
-                    accept=".csv"
-                    onChange={(e) => {
-                        setFile(e.target.files[0]);
-                        setError('');
-                        setSuccess('');
-                    }}
-                />
-                <button type="submit">Cargar CSV</button>
-            </form>
-            {error && <div style={{ color: 'red' }}>{error}</div>}
-            {success && <div style={{ color: 'green' }}>{success}</div>}
+
+            {/* Sección CSV */}
+            <section className='csvGastos'>
+                <section>
+                    <h2>CSV</h2>
+                    <form onSubmit={handleFileUpload}>
+                        <input
+                            type="file"
+                            accept=".csv"
+                            onChange={(e) => {
+                                setFile(e.target.files[0]);
+                                setError('');
+                                setSuccess('');
+                            }}
+                        />
+                        <button type="submit">Cargar CSV</button>
+                    </form>
+                    {error && <div style={{ color: 'red' }}>{error}</div>}
+                    {success && <div style={{ color: 'green' }}>{success}</div>}
+                </section>
+                <section>
+                    <h2>Gastos</h2>
+                    <button onClick={() => abrirModal()}>Añadir Gasto</button>
+                </section>
+            </section>
 
             {/* Filtros */}
             <section className="filtros">
@@ -125,14 +134,7 @@ const Dashboard = () => {
 
             {/* Tabla de gastos */}
             <section className="gastosTotal">
-
-                <section className="gastos">
-                    <h2>Gastos</h2>
-                    <button onClick={() => abrirModal()}>Añadir Gasto</button>
-
-                </section>
-                {/* Total Gastos */}
-                <TotalGastos gastos={filtrarGastos()} />
+                <TotalGastos gastos={gastos} />
             </section>
             <section>
                 <table className="tabla-gastos">
@@ -146,7 +148,7 @@ const Dashboard = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filtrarGastos().map((gasto) => (
+                        {gastos.map((gasto) => (
                             <tr key={gasto._id}>
                                 <td>{gasto.descripcion}</td>
                                 <td>{gasto.cantidad}</td>
@@ -161,8 +163,6 @@ const Dashboard = () => {
                     </tbody>
                 </table>
             </section>
-
-
 
             {/* Modal para añadir/editar gasto */}
             {modalOpen && <GastoModal open={modalOpen} onClose={cerrarModal} gasto={gastoSeleccionado} categorias={categorias} setGastos={setGastos} gastos={gastos} />}

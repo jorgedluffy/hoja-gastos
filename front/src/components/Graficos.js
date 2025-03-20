@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Bar } from 'react-chartjs-2';
 import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
     BarElement,
+    CategoryScale,
+    Chart as ChartJS,
+    Legend,
+    LinearScale,
     Title,
-    Tooltip,
-    Legend
+    Tooltip
 } from 'chart.js';
+import React, { useEffect, useState } from 'react';
+import { Bar } from 'react-chartjs-2';
 import TotalGastos from './TotalGastos';
 
 // Registrar componentes de Chart.js
@@ -20,31 +20,30 @@ const Graficos = () => {
     const [gastos, setGastos] = useState([]);
     const [filtros, setFiltros] = useState({ categoria: '', cantidad: '', fechaInicio: '', fechaFin: '' });
 
-    useEffect(() => {
-        const fetchData = async () => {
+    // Función para obtener datos filtrados desde el backend
+    const fetchData = async () => {
+        try {
             const categoriasRes = await axios.get('http://localhost:5000/categorias');
             setCategorias(categoriasRes.data);
-            const gastosRes = await axios.get('http://localhost:5000/gastos');
-            setGastos(gastosRes.data);
-        };
-        fetchData();
-    }, []);
 
-    const filtrarGastos = () => {
-        return gastos.filter((gasto) => {
-            const cumpleCategoria = filtros.categoria ? gasto.categoria?._id === filtros.categoria : true;
-            const cumpleCantidad = filtros.cantidad ? parseFloat(gasto.cantidad) >= parseFloat(filtros.cantidad) : true;
-            const cumpleFecha = (filtros.fechaInicio && filtros.fechaFin) ?
-                (new Date(gasto.fecha) >= new Date(filtros.fechaInicio) && new Date(gasto.fecha) <= new Date(filtros.fechaFin))
-                : true;
-            return cumpleCategoria && cumpleCantidad && cumpleFecha;
-        });
+            const params = new URLSearchParams(filtros).toString(); // Convierte filtros en query string
+            const gastosRes = await axios.get(`http://localhost:5000/gastos?${params}`);
+            setGastos(gastosRes.data);
+        } catch (error) {
+            console.error('Error al obtener los datos:', error);
+        }
     };
 
+    // Llamar a fetchData cada vez que cambien los filtros
+    useEffect(() => {
+        fetchData();
+    }, [filtros]);
+
+    // Generar datos para el gráfico
     const obtenerDatosGrafico = () => {
         const categoriasNombres = categorias.map((cat) => cat.nombre);
         const categoriasTotales = categorias.map((cat) =>
-            filtrarGastos()
+            gastos
                 .filter((gasto) => gasto.categoria?._id === cat._id)
                 .reduce((sum, gasto) => sum + parseFloat(gasto.cantidad), 0)
         );
@@ -90,7 +89,7 @@ const Graficos = () => {
             </section>
 
             {/* Total Gastos */}
-            <TotalGastos gastos={filtrarGastos()} />
+            <TotalGastos gastos={gastos} />
 
             {/* Gráfico */}
             <Bar data={obtenerDatosGrafico()} />

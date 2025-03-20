@@ -146,14 +146,17 @@ app.post('/categorias', async (req, res) => {
 // Gastos
 app.get('/gastos', async (req, res) => {
     try {
-        const { fechaInicio, fechaFin } = req.query;
+        const { categoria, cantidad, fechaInicio, fechaFin } = req.query;
 
         let filtro = {};
+        if (categoria) {
+            filtro['categoria'] = categoria;
+        }
+        if (cantidad) {
+            filtro['cantidad'] = { $gte: parseFloat(cantidad) };
+        }
         if (fechaInicio && fechaFin) {
-            filtro.fecha = {
-                $gte: new Date(fechaInicio),
-                $lte: new Date(fechaFin),
-            };
+            filtro['fecha'] = { $gte: new Date(fechaInicio), $lte: new Date(fechaFin) };
         }
 
         const gastos = await Gasto.find(filtro).populate('categoria');

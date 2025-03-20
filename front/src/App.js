@@ -1,8 +1,8 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import Categorias from './components/Categorias';
 import Dashboard from './components/Dashboard';
 import Graficos from './components/Graficos';
-import Categorias from './components/Categorias';
 import Navbar from './components/Navbar';
 
 const App = () => {
