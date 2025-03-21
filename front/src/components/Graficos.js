@@ -1,17 +1,33 @@
 import axios from 'axios';
 import {
+    ArcElement,
     BarElement,
     CategoryScale,
     Chart as ChartJS,
     Legend,
-    LinearScale,
+    LinearScale, // Para gráficos de líneas y radar
+    LineElement,
+    PointElement, // Para gráficos de pastel (Pie)
+    RadialLinearScale,
     Title,
     Tooltip
 } from 'chart.js';
 import React, { useEffect, useState } from 'react';
-import { Bar } from 'react-chartjs-2';
+import { Bar, Line, Pie, Radar } from 'react-chartjs-2';
+import './Graficos.css';
 import TotalGastos from './TotalGastos';
 
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    BarElement,
+    ArcElement,
+    RadialLinearScale,
+    Tooltip,
+    Legend
+);
 // Registrar componentes de Chart.js
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -39,7 +55,45 @@ const Graficos = () => {
         fetchData();
     }, [filtros]);
 
+
     // Generar datos para el gráfico
+
+    const obtenerDatosPie = () => {
+        const categoriasNombres = categorias.map(cat => cat.nombre);
+        const categoriasTotales = categorias.map(cat =>
+            gastos.filter(g => g.categoria?._id === cat._id)
+                .reduce((sum, g) => sum + parseFloat(g.cantidad), 0)
+        );
+        return {
+            labels: categoriasNombres,
+            datasets: [{
+                data: categoriasTotales,
+                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
+                hoverOffset: 4
+            }]
+        };
+    };
+
+    const obtenerDatosLinea = () => {
+        const fechas = [...new Set(gastos.map(g => new Date(g.fecha).toLocaleDateString()))].sort();
+        const totalPorFecha = fechas.map(fecha =>
+            gastos.filter(g => new Date(g.fecha).toLocaleDateString() === fecha)
+                .reduce((sum, g) => sum + parseFloat(g.cantidad), 0)
+        );
+        return {
+            labels: fechas,
+            datasets: [{
+                label: 'Gastos en el tiempo',
+                data: totalPorFecha,
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderWidth: 2,
+                fill: true
+            }]
+        };
+    };
+
+
     const obtenerDatosGrafico = () => {
         const categoriasNombres = categorias.map((cat) => cat.nombre);
         const categoriasTotales = categorias.map((cat) =>
@@ -92,7 +146,26 @@ const Graficos = () => {
             <TotalGastos gastos={gastos} />
 
             {/* Gráfico */}
-            <Bar data={obtenerDatosGrafico()} />
+            <section className='grafico'>
+                <section>
+                    <h2>Gastos por Categoría</h2>
+                    <Bar data={obtenerDatosGrafico()} />
+                </section>
+                <section>
+                    <h2>Gastos en el Tiempo</h2>
+                    <Line data={obtenerDatosLinea()} />
+                </section>
+            </section>
+            <section className='grafico'>
+                <section>
+                    <h2>Distribución de Gastos</h2>
+                    <Pie data={obtenerDatosPie()} />
+                </section>
+                <section>
+                    <h2>Radar</h2>
+                    <Radar data={obtenerDatosPie()} />
+                </section>
+            </section>
         </div>
     );
 };

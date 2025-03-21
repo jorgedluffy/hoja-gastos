@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
 import { Dialog } from '@mui/material';
+import React, { useEffect, useState } from 'react';
 
 const GastoModal = ({ open, onClose, gasto, categorias, setGastos, gastos }) => {
     const [formData, setFormData] = useState({ descripcion: '', cantidad: '', categoria: '' });
@@ -27,27 +27,39 @@ const GastoModal = ({ open, onClose, gasto, categorias, setGastos, gastos }) => 
         }
 
         try {
+            let res;
             if (gasto) {
                 // Editar gasto existente
-                const res = await fetch(`http://localhost:5000/gastos/${gasto._id}`, {
+                res = await fetch(`http://localhost:5000/gastos/${gasto._id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
                 });
-                const updatedGasto = await res.json();
-                setGastos(gastos.map(g => g._id === gasto._id ? updatedGasto : g));
             } else {
                 // Añadir nuevo gasto
-                const res = await fetch('http://localhost:5000/gastos', {
+                res = await fetch('http://localhost:5000/gastos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
                 });
-                const newGasto = await res.json();
-                setGastos([...gastos, newGasto]);
             }
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.message || 'Error desconocido al guardar el gasto.');
+            }
+
+            const updatedGasto = await res.json();
+
+            if (gasto) {
+                setGastos(gastos.map(g => g._id === gasto._id ? updatedGasto : g));
+            } else {
+                setGastos([...gastos, updatedGasto]);
+            }
+
             onClose();
         } catch (error) {
+            alert(`Error al procesar el gasto: ${error.message}`);
             console.error('Error al procesar el gasto:', error);
         }
     };
