@@ -12,10 +12,10 @@ import {
     Title,
     Tooltip
 } from 'chart.js';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Bar, Line, Pie, Radar } from 'react-chartjs-2';
+import TotalGastos from '../gastos/TotalGastos';
 import './Graficos.css';
-import TotalGastos from './TotalGastos';
 
 ChartJS.register(
     CategoryScale,
@@ -37,23 +37,23 @@ const Graficos = () => {
     const [filtros, setFiltros] = useState({ categoria: '', cantidad: '', fechaInicio: '', fechaFin: '' });
 
     // Función para obtener datos filtrados desde el backend
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             const categoriasRes = await axios.get('http://localhost:5000/categorias');
             setCategorias(categoriasRes.data);
 
-            const params = new URLSearchParams(filtros).toString(); // Convierte filtros en query string
+            const params = new URLSearchParams(filtros).toString();
             const gastosRes = await axios.get(`http://localhost:5000/gastos?${params}`);
             setGastos(gastosRes.data);
         } catch (error) {
             console.error('Error al obtener los datos:', error);
         }
-    };
+    }, [filtros]);
 
     // Llamar a fetchData cada vez que cambien los filtros
     useEffect(() => {
         fetchData();
-    }, [filtros]);
+    }, [filtros, fetchData]);
 
 
     // Generar datos para el gráfico

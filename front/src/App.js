@@ -1,9 +1,9 @@
 import React from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import Categorias from './components/Categorias';
-import Dashboard from './components/Dashboard';
-import Graficos from './components/Graficos';
-import Navbar from './components/Navbar';
+import Categorias from './components/categorias/Categorias';
+import Dashboard from './components/dashboard/Dashboard';
+import Graficos from './components/graficos/Graficos';
+import Navbar from './components/navbar/Navbar';
 
 const App = () => {
     return (

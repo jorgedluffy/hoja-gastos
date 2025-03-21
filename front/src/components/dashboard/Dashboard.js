@@ -1,9 +1,9 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { FaEdit, FaTrash } from 'react-icons/fa'; // Importar iconos
+import GastoModal from '../gastos/GastoModal';
+import TotalGastos from '../gastos/TotalGastos';
 import './Dashboard.css';
-import GastoModal from './GastoModal';
-import TotalGastos from './TotalGastos';
 
 const Dashboard = () => {
     const [file, setFile] = useState(null);
