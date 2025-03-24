@@ -3,7 +3,7 @@ const app = express();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-
+const { exportarCSV } = require('./controllers/gastoController');
 app.use(cors());
 // Middleware
 app.use(bodyParser.json());
@@ -20,15 +20,9 @@ const CategoriaSchema = new mongoose.Schema({
     nombre: { type: String, required: true, unique: true }
 });
 
-const GastoSchema = new mongoose.Schema({
-    descripcion: { type: String, required: true },
-    cantidad: { type: Number, required: true },
-    categoria: { type: mongoose.Schema.Types.ObjectId, ref: 'Categoria', required: true },
-    fecha: { type: Date, default: Date.now }
-});
 
+const Gasto = require('./models/Gasto');
 const Categoria = mongoose.model('Categoria', CategoriaSchema);
-const Gasto = mongoose.model('Gasto', GastoSchema);
 //************************************************************************************************ 
 //CSV
 const multer = require('multer');
@@ -48,6 +42,8 @@ const upload = multer({
     },
 });
 
+app.get('/exportar-csv', exportarCSV);
+
 app.post('/cargar-csv', upload.single('file'), async (req, res) => {
     const filePath = req.file?.path;
 
@@ -61,7 +57,7 @@ app.post('/cargar-csv', upload.single('file'), async (req, res) => {
             .pipe(csvParser())
             .on('data', (data) => {
                 // Validar que los campos necesarios existan
-                if (!data.descripcion || !data.cantidad || !data.categoria) {
+                if (!data.descripcion || !data.cantidad || !data.categoria || !data.fecha) {
                     throw new Error('Archivo CSV con formato inválido. Faltan campos obligatorios.');
                 }
                 results.push(data);

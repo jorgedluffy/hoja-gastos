@@ -1,9 +1,11 @@
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import { saveAs } from 'file-saver';
+import React, { useCallback, useEffect, useState } from 'react';
 import { FaEdit, FaTrash } from 'react-icons/fa'; // Importar iconos
 import GastoModal from '../gastos/GastoModal';
 import TotalGastos from '../gastos/TotalGastos';
 import './Dashboard.css';
+
 
 const Dashboard = () => {
     const [file, setFile] = useState(null);
@@ -15,8 +17,20 @@ const Dashboard = () => {
     const [gastoSeleccionado, setGastoSeleccionado] = useState(null);
     const [filtros, setFiltros] = useState({ categoria: '', cantidad: '', fechaInicio: '', fechaFin: '' });
 
+    //exportar a un csv 
+    const exportarCSV = async () => {
+        try {
+            const response = await fetch('http://localhost:5000/exportar-csv');
+            if (!response.ok) throw new Error('Error al descargar CSV');
+            const blob = await response.blob();
+            saveAs(blob, 'gastos.csv');
+        } catch (error) {
+            console.error('Error al descargar el CSV:', error);
+        }
+    };
+
     // Función para obtener datos filtrados desde el backend
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             const categoriasRes = await axios.get('http://localhost:5000/categorias');
             setCategorias(categoriasRes.data);
@@ -27,12 +41,12 @@ const Dashboard = () => {
         } catch (error) {
             console.error('Error al obtener los datos:', error);
         }
-    };
+    }, [filtros]);
 
     // Llamar a fetchData cada vez que cambien los filtros
     useEffect(() => {
         fetchData();
-    }, [filtros]);
+    }, [filtros, fetchData]);
 
     // Manejo de archivos CSV
     const handleFileUpload = async (e) => {
@@ -103,6 +117,9 @@ const Dashboard = () => {
                     </form>
                     {error && <div style={{ color: 'red' }}>{error}</div>}
                     {success && <div style={{ color: 'green' }}>{success}</div>}
+                    <button onClick={() => exportarCSV(gastos)} style={{ marginTop: '10px' }}>
+                        Descargar CSV
+                    </button>
                 </section>
                 <section>
                     <h2>Gastos</h2>
