@@ -3,7 +3,10 @@ const app = express();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const { exportarCSV } = require('./controllers/gastoController');
+const { descargarCsv, cargarCsv } = require('./controllers/gastoController');
+const Gasto = require('./models/Gasto');
+const Categoria = require('./models/Categoria');
+
 app.use(cors());
 // Middleware
 app.use(bodyParser.json());
@@ -15,14 +18,8 @@ mongoose.connect('mongodb://localhost:27017/gastos', {
 }).then(() => console.log('Conectado a MongoDB'))
     .catch(err => console.error(err));
 
-// Esquemas de MongoDB
-const CategoriaSchema = new mongoose.Schema({
-    nombre: { type: String, required: true, unique: true }
-});
 
 
-const Gasto = require('./models/Gasto');
-const Categoria = mongoose.model('Categoria', CategoriaSchema);
 //************************************************************************************************ 
 //CSV
 const multer = require('multer');
@@ -42,71 +39,16 @@ const upload = multer({
     },
 });
 
-app.get('/exportar-csv', exportarCSV);
-
-app.post('/cargar-csv', upload.single('file'), async (req, res) => {
-    const filePath = req.file?.path;
-
-    if (!filePath) {
-        return res.status(400).json({ error: 'Archivo no recibido' });
-    }
-
-    const results = [];
+app.get('/descargarCsv', descargarCsv);
+app.post('/cargarCsv', upload.single('file'), async (req, res) => {
     try {
-        fs.createReadStream(filePath)
-            .pipe(csvParser())
-            .on('data', (data) => {
-                // Validar que los campos necesarios existan
-                if (!data.descripcion || !data.cantidad || !data.categoria || !data.fecha) {
-                    throw new Error('Archivo CSV con formato inválido. Faltan campos obligatorios.');
-                }
-                results.push(data);
-            })
-            .on('end', async () => {
-                fs.unlinkSync(filePath); // Eliminar archivo temporal
-
-                try {
-                    // Guardar datos en la base de datos
-                    for (const item of results) {
-                        const { descripcion, cantidad, categoria } = item;
-
-                        // Validar formato de datos
-                        if (isNaN(cantidad) || parseFloat(cantidad) <= 0) {
-                            throw new Error(`El campo cantidad "${cantidad}" no es válido.`);
-                        }
-
-                        // Buscar o crear la categoría
-                        let categoriaDoc = await Categoria.findOne({ nombre: categoria });
-                        if (!categoriaDoc) {
-                            categoriaDoc = new Categoria({ nombre: categoria });
-                            await categoriaDoc.save();
-                        }
-
-                        // Crear y guardar el gasto
-                        const nuevoGasto = new Gasto({
-                            descripcion,
-                            cantidad: parseFloat(cantidad),
-                            categoria: categoriaDoc._id,
-                        });
-                        await nuevoGasto.save();
-                    }
-
-                    res.status(201).json({ mensaje: 'Datos importados exitosamente', total: results.length });
-                } catch (error) {
-                    console.error('Error al guardar los datos en la base de datos:', error.message);
-                    res.status(500).json({ error: error.message });
-                }
-            })
-            .on('error', (err) => {
-                console.error('Error al procesar el archivo CSV:', err.message);
-                res.status(400).json({ error: err.message });
-            });
-    } catch (error) {
-        console.error('Error general:', error.message);
-        fs.unlinkSync(filePath); // Asegurar limpieza del archivo
-        res.status(500).json({ error: 'Error al procesar el archivo CSV' });
+        await cargarCsv(req, res);
+    } catch (err) {
+        console.error("Error en la carga del CSV:", err); // 👀 Agrega este log
+        res.status(500).json({ error: 'Error al cargar el csv 1' });
     }
 });
+
 
 //************************************************************************************************ 
 // ** Rutas API **

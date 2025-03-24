@@ -18,9 +18,9 @@ const Dashboard = () => {
     const [filtros, setFiltros] = useState({ categoria: '', cantidad: '', fechaInicio: '', fechaFin: '' });
 
     //exportar a un csv 
-    const exportarCSV = async () => {
+    const descargarCsv = async () => {
         try {
-            const response = await fetch('http://localhost:5000/exportar-csv');
+            const response = await fetch('http://localhost:5000/descargarCsv');
             if (!response.ok) throw new Error('Error al descargar CSV');
             const blob = await response.blob();
             saveAs(blob, 'gastos.csv');
@@ -57,16 +57,19 @@ const Dashboard = () => {
         }
         const formData = new FormData();
         formData.append('file', file);
+        console.log("dd" + formData);
         try {
             setError('');
             setSuccess('');
-            const res = await axios.post('http://localhost:5000/cargar-csv', formData, {
+            const res = await axios.post('http://localhost:5000/cargarCsv', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
+            console.log('f f:', res);
             setSuccess(`Datos cargados exitosamente: ${res.data.total} registros procesados.`);
             setFile(null);
             fetchData(); // Volver a obtener los datos después de cargar el CSV
         } catch (err) {
+            console.log("errr" + formData);
             setError(err.response?.data?.error || 'Error desconocido. Verifica el formato del archivo.');
         }
     };
@@ -117,7 +120,7 @@ const Dashboard = () => {
                     </form>
                     {error && <div style={{ color: 'red' }}>{error}</div>}
                     {success && <div style={{ color: 'green' }}>{success}</div>}
-                    <button onClick={() => exportarCSV(gastos)} style={{ marginTop: '10px' }}>
+                    <button onClick={() => descargarCsv(gastos)} style={{ marginTop: '10px' }}>
                         Descargar CSV
                     </button>
                 </section>
