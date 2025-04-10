@@ -1,14 +1,14 @@
 import axios from 'axios';
 import { saveAs } from 'file-saver';
 import React, { useCallback, useEffect, useState } from 'react';
-import { FaEdit, FaTrash } from 'react-icons/fa'; // Importar iconos
+import { FaEdit, FaTrash, FaCloudUploadAlt, FaCloudDownloadAlt } from 'react-icons/fa'; // Importar iconos
 import GastoModal from '../gastos/GastoModal';
 import TotalGastos from '../gastos/TotalGastos';
 import './Dashboard.css';
-
+import Button from '@mui/material/Button';
+import { VisuallyHiddenInput, CsvGastos } from './Dashboard.styled';
 
 const Dashboard = () => {
-    const [file, setFile] = useState(null);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [categorias, setCategorias] = useState([]);
@@ -49,8 +49,7 @@ const Dashboard = () => {
     }, [filtros, fetchData]);
 
     // Manejo de archivos CSV
-    const handleFileUpload = async (e) => {
-        e.preventDefault();
+    const handleFileUpload = async (file) => {
         if (!file) {
             setError('Por favor, selecciona un archivo CSV.');
             return;
@@ -66,7 +65,6 @@ const Dashboard = () => {
             });
             console.log('f f:', res);
             setSuccess(`Datos cargados exitosamente: ${res.data.total} registros procesados.`);
-            setFile(null);
             fetchData(); // Volver a obtener los datos después de cargar el CSV
         } catch (err) {
             console.log("errr" + formData);
@@ -103,32 +101,46 @@ const Dashboard = () => {
             <h1>Dashboard</h1>
 
             {/* Sección CSV */}
-            <section className='csvGastos'>
+            <CsvGastos>
                 <section>
-                    <h2>CSV</h2>
-                    <form onSubmit={handleFileUpload}>
-                        <input
+                    <Button
+                        component="label"
+                        role={undefined}
+                        variant="contained"
+                        tabIndex={-1}
+                        startIcon={<FaCloudUploadAlt />}
+                    >
+                        Cargar CSV
+                        <VisuallyHiddenInput
                             type="file"
-                            accept=".csv"
                             onChange={(e) => {
-                                setFile(e.target.files[0]);
                                 setError('');
                                 setSuccess('');
+                                handleFileUpload(e.target.files[0]);
                             }}
+                            multiple
                         />
-                        <button type="submit">Cargar CSV</button>
-                    </form>
+                    </Button>
+
+                    <Button
+                        component="label"
+                        role={undefined}
+                        variant="contained"
+                        tabIndex={-1}
+                        startIcon={<FaCloudDownloadAlt />}
+                        onClick={() => descargarCsv(gastos)}
+                        style={{ marginLeft: '10px' }}
+                    >
+                        Descargar CSV
+                    </Button>
                     {error && <div style={{ color: 'red' }}>{error}</div>}
                     {success && <div style={{ color: 'green' }}>{success}</div>}
-                    <button onClick={() => descargarCsv(gastos)} style={{ marginTop: '10px' }}>
-                        Descargar CSV
-                    </button>
                 </section>
                 <section>
                     <h2>Gastos</h2>
                     <button onClick={() => abrirModal()}>Añadir Gasto</button>
                 </section>
-            </section>
+            </CsvGastos>
 
             {/* Filtros */}
             <section className="filtros">

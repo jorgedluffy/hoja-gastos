@@ -9,11 +9,3 @@
     padding: 0 20px;
     /* Espaciado extra en los lados */
 }
-
-.button {
-    margin: 0 10px;
-    color: white !important;
-    /* Asegura que el color sea blanco */
-    font-weight: bold;
-    text-transform: none;
-}

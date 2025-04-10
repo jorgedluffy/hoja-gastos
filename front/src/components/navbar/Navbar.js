@@ -1,34 +1,46 @@
 import React from 'react';
 import { AppBar, Toolbar, Button } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import './Navbar.css'; // Asegúrate de que el archivo CSS esté correctamente importado
+import { useLocation, useNavigate } from 'react-router-dom';
+import './Navbar.css';
 
 const Navbar = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const baseButtonStyle = {
+        color: '#ffffff',
+        fontWeight: 'bold',
+        textTransform: 'none',
+        margin: '0 10px',
+    };
+
+    const activeButtonStyle = {
+        backgroundColor: '#ffffff',
+        color: '#1976d2',
+        '&:hover': {
+            backgroundColor: '#e3f2fd',
+        },
+    };
+
+    const renderButton = (label, path) => (
+        <Button
+            sx={{
+                ...baseButtonStyle,
+                ...(location.pathname === path ? activeButtonStyle : {}),
+            }}
+            onClick={() => navigate(path)}
+        >
+            {label}
+        </Button>
+    );
 
     return (
         <AppBar position="static" className="navbar">
             <Toolbar>
-                {/* Contenedor de botones */}
                 <div style={{ display: 'flex', gap: '10px' }}>
-                    <Button
-                        sx={{ color: '#ffffff', fontWeight: 'bold', textTransform: 'none' }}
-                        onClick={() => navigate('/dashboard')}
-                    >
-                        Dashboard
-                    </Button>
-                    <Button
-                        sx={{ color: '#ffffff', fontWeight: 'bold', textTransform: 'none' }}
-                        onClick={() => navigate('/graficos')}
-                    >
-                        Gráficos
-                    </Button>
-                    <Button
-                        sx={{ color: '#ffffff', fontWeight: 'bold', textTransform: 'none' }}
-                        onClick={() => navigate('/categorias')}
-                    >
-                        Categorías
-                    </Button>
+                    {renderButton('Dashboard', '/dashboard')}
+                    {renderButton('Gráficos', '/graficos')}
+                    {renderButton('Categorías', '/categorias')}
                 </div>
             </Toolbar>
         </AppBar>
