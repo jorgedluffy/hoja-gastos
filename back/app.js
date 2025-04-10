@@ -39,7 +39,6 @@ const upload = multer({
     },
 });
 
-app.get('/descargarCsv', descargarCsv);
 app.post('/cargarCsv', upload.single('file'), async (req, res) => {
     try {
         await cargarCsv(req, res);
@@ -50,6 +49,7 @@ app.post('/cargarCsv', upload.single('file'), async (req, res) => {
 });
 
 
+app.get('/descargarCsv', descargarCsv);
 //************************************************************************************************ 
 // ** Rutas API **
 

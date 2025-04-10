@@ -7,9 +7,9 @@ const GastoModal = ({ open, onClose, gasto, categorias, setGastos, gastos }) => 
     useEffect(() => {
         if (gasto) {
             setFormData({
-                descripcion: gasto.descripcion || '',
-                cantidad: gasto.cantidad || '',
-                categoria: gasto.categoria?._id || ''
+                descripcion: gasto.descripcion ?? '',
+                cantidad: gasto.cantidad ?? '',
+                categoria: gasto.categoria?._id ?? ''
             });
         } else {
             setFormData({ descripcion: '', cantidad: '', categoria: '' });

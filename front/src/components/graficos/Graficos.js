@@ -5,8 +5,7 @@ import {
     CategoryScale,
     Chart as ChartJS,
     Legend,
-    LinearScale, // Para gráficos de líneas y radar
-    LineElement,
+    LinearScale,
     PointElement, // Para gráficos de pastel (Pie)
     RadialLinearScale,
     Title,
@@ -17,19 +16,7 @@ import { Bar, Line, Pie, Radar } from 'react-chartjs-2';
 import TotalGastos from '../gastos/TotalGastos';
 import './Graficos.css';
 
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    BarElement,
-    ArcElement,
-    RadialLinearScale,
-    Tooltip,
-    Legend
-);
-// Registrar componentes de Chart.js
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, RadialLinearScale, ArcElement, PointElement);
 
 const Graficos = () => {
     const [categorias, setCategorias] = useState([]);
