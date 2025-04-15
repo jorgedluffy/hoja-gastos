@@ -1,5 +1,5 @@
+import { AppBar, Button, Toolbar } from '@mui/material';
 import React from 'react';
-import { AppBar, Toolbar, Button } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 
@@ -41,6 +41,7 @@ const Navbar = () => {
                     {renderButton('Dashboard', '/dashboard')}
                     {renderButton('Gráficos', '/graficos')}
                     {renderButton('Categorías', '/categorias')}
+                    {renderButton('Movimientos', '/movimientos')}
                 </div>
             </Toolbar>
         </AppBar>

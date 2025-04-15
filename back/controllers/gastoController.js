@@ -16,7 +16,7 @@ const cargarCsv = async (req, res) => {
 
     try {
         fs.createReadStream(filePath)
-            .pipe(csv({ separator: ',', mapHeaders: ({ header }) => header.trim().toLowerCase() }))
+            .pipe(csv({ separator: ';', mapHeaders: ({ header }) => header.trim().toLowerCase() }))
             .on('data', (data) => {
                 // Validación de los campos necesarios
                 const { descripcion, cantidad, categoria, fecha } = data;
@@ -89,7 +89,7 @@ const descargarCsv = async (req, res) => {
             fecha: new Date(gasto.fecha).toLocaleDateString('es-ES')
         }));
 
-        const csv = Papa.unparse(dataProcesada, { delimiter: "," });
+        const csv = Papa.unparse(dataProcesada, { delimiter: ";" });
         const filePath = path.join(__dirname, '../temp/gastos.csv');
 
         fs.writeFileSync(filePath, "\uFEFF" + csv, 'utf8');

@@ -3,6 +3,7 @@ import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import Categorias from './components/categorias/Categorias';
 import Dashboard from './components/dashboard/Dashboard';
 import Graficos from './components/graficos/Graficos';
+import Movimientos from './components/movimientos/Movimientos';
 import Navbar from './components/navbar/Navbar';
 
 const App = () => {
@@ -16,6 +17,7 @@ const App = () => {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/graficos" element={<Graficos />} />
                 <Route path="/categorias" element={<Categorias />} />
+                <Route path="/movimientos" element={<Movimientos />} />
             </Routes>
         </Router>
     );

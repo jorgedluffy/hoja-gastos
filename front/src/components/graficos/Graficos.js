@@ -6,6 +6,7 @@ import {
     Chart as ChartJS,
     Legend,
     LinearScale,
+    LineElement,
     PointElement, // Para gráficos de pastel (Pie)
     RadialLinearScale,
     Title,
@@ -16,7 +17,7 @@ import { Bar, Line, Pie, Radar } from 'react-chartjs-2';
 import TotalGastos from '../gastos/TotalGastos';
 import './Graficos.css';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, RadialLinearScale, ArcElement, PointElement);
+ChartJS.register(CategoryScale, LinearScale, LineElement, BarElement, Title, Tooltip, Legend, RadialLinearScale, ArcElement, PointElement);
 
 const Graficos = () => {
     const [categorias, setCategorias] = useState([]);
@@ -51,6 +52,7 @@ const Graficos = () => {
             gastos.filter(g => g.categoria?._id === cat._id)
                 .reduce((sum, g) => sum + parseFloat(g.cantidad), 0)
         );
+        console.log(gastos)
         return {
             labels: categoriasNombres,
             datasets: [{
@@ -88,6 +90,8 @@ const Graficos = () => {
                 .filter((gasto) => gasto.categoria?._id === cat._id)
                 .reduce((sum, gasto) => sum + parseFloat(gasto.cantidad), 0)
         );
+        console.log(categorias);
+        console.log(gastos);
 
         return {
             labels: categoriasNombres,
@@ -106,53 +110,54 @@ const Graficos = () => {
     return (
         <div className="graficos">
             <h1>Gráficos de Gastos</h1>
+            {categorias && categorias.length > 0 && gastos && gastos.length > 0 && <>
+                {/* Filtros */}
+                <section className="filtros">
+                    <h2>Filtrar Gastos</h2>
+                    <div className="filtros-container">
+                        <label>Categoría:
+                            <select value={filtros.categoria} onChange={(e) => setFiltros({ ...filtros, categoria: e.target.value })}>
+                                <option value="">Todas</option>
+                                {categorias.map((cat) => <option key={cat._id} value={cat._id}>{cat.nombre}</option>)}
+                            </select>
+                        </label>
+                        <label>Cantidad mínima:
+                            <input type="number" value={filtros.cantidad} onChange={(e) => setFiltros({ ...filtros, cantidad: e.target.value })} />
+                        </label>
+                        <label>Fecha desde:
+                            <input type="date" value={filtros.fechaInicio} onChange={(e) => setFiltros({ ...filtros, fechaInicio: e.target.value })} />
+                        </label>
+                        <label>Fecha hasta:
+                            <input type="date" value={filtros.fechaFin} onChange={(e) => setFiltros({ ...filtros, fechaFin: e.target.value })} />
+                        </label>
+                    </div>
+                </section>
 
-            {/* Filtros */}
-            <section className="filtros">
-                <h2>Filtrar Gastos</h2>
-                <div className="filtros-container">
-                    <label>Categoría:
-                        <select value={filtros.categoria} onChange={(e) => setFiltros({ ...filtros, categoria: e.target.value })}>
-                            <option value="">Todas</option>
-                            {categorias.map((cat) => <option key={cat._id} value={cat._id}>{cat.nombre}</option>)}
-                        </select>
-                    </label>
-                    <label>Cantidad mínima:
-                        <input type="number" value={filtros.cantidad} onChange={(e) => setFiltros({ ...filtros, cantidad: e.target.value })} />
-                    </label>
-                    <label>Fecha desde:
-                        <input type="date" value={filtros.fechaInicio} onChange={(e) => setFiltros({ ...filtros, fechaInicio: e.target.value })} />
-                    </label>
-                    <label>Fecha hasta:
-                        <input type="date" value={filtros.fechaFin} onChange={(e) => setFiltros({ ...filtros, fechaFin: e.target.value })} />
-                    </label>
-                </div>
-            </section>
+                {/* Total Gastos */}
+                <TotalGastos gastos={gastos} />
 
-            {/* Total Gastos */}
-            <TotalGastos gastos={gastos} />
-
-            {/* Gráfico */}
-            <section className='grafico'>
-                <section>
-                    <h2>Gastos por Categoría</h2>
-                    <Bar data={obtenerDatosGrafico()} />
+                {/* Gráfico */}
+                <section className='grafico'>
+                    <section>
+                        <h2>Gastos por Categoría</h2>
+                        <Bar data={obtenerDatosGrafico()} />
+                    </section>
+                    <section>
+                        <h2>Gastos en el Tiempo</h2>
+                        <Line data={obtenerDatosLinea()} />
+                    </section>
                 </section>
-                <section>
-                    <h2>Gastos en el Tiempo</h2>
-                    <Line data={obtenerDatosLinea()} />
+                <section className='grafico'>
+                    <section>
+                        <h2>Distribución de Gastos</h2>
+                        <Pie data={obtenerDatosPie()} />
+                    </section>
+                    <section>
+                        <h2>Radar</h2>
+                        <Radar data={obtenerDatosPie()} />
+                    </section>
                 </section>
-            </section>
-            <section className='grafico'>
-                <section>
-                    <h2>Distribución de Gastos</h2>
-                    <Pie data={obtenerDatosPie()} />
-                </section>
-                <section>
-                    <h2>Radar</h2>
-                    <Radar data={obtenerDatosPie()} />
-                </section>
-            </section>
+            </>}
         </div>
     );
 };
