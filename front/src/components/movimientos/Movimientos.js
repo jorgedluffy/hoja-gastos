@@ -7,6 +7,7 @@ import GastoModal from '../gastos/GastoModal';
 import TotalGastos from '../gastos/TotalGastos';
 import './Movimientos.css';
 import { CsvGastos, VisuallyHiddenInput } from './Movimientos.styled';
+import * as API_URLS from '../../api/api_urls';
 
 const Movimientos = () => {
     const [error, setError] = useState('');
@@ -20,7 +21,7 @@ const Movimientos = () => {
     //exportar a un csv 
     const descargarCsv = async () => {
         try {
-            const response = await fetch('http://localhost:5000/descargarCsv');
+            const response = await fetch(`${API_URLS.DESCARGAR_CSV}`);
             if (!response.ok) throw new Error('Error al descargar CSV');
             const blob = await response.blob();
             saveAs(blob, 'gastos.csv');
@@ -32,11 +33,11 @@ const Movimientos = () => {
     // Función para obtener datos filtrados desde el backend
     const fetchData = useCallback(async () => {
         try {
-            const categoriasRes = await axios.get('http://localhost:5000/categorias');
+            const categoriasRes = await axios.get(`${API_URLS.CATEGORIAS}`);
             setCategorias(categoriasRes.data);
 
             const params = new URLSearchParams(filtros).toString(); // Convierte filtros en query string
-            const gastosRes = await axios.get(`http://localhost:5000/gastos?${params}`);
+            const gastosRes = await axios.get(`${API_URLS.GASTOS}${params}`);
             setGastos(gastosRes.data);
         } catch (error) {
             console.error('Error al obtener los datos:', error);
@@ -60,7 +61,7 @@ const Movimientos = () => {
         try {
             setError('');
             setSuccess('');
-            const res = await axios.post('http://localhost:5000/cargarCsv', formData, {
+            const res = await axios.post(`${API_URLS.CARGAR_CSV}`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             console.log('f f:', res);
@@ -88,7 +89,7 @@ const Movimientos = () => {
     const handleDeleteGasto = async (id) => {
         if (window.confirm('¿Estás seguro de que deseas eliminar este gasto?')) {
             try {
-                await axios.delete(`http://localhost:5000/gastos/${id}`);
+                await axios.delete(`${API_URLS.GASTOS}/${id}`);
                 fetchData(); // Volver a obtener los datos después de eliminar un gasto
             } catch (error) {
                 console.error('Error al eliminar el gasto:', error);

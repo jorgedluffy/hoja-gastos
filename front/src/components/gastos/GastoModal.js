@@ -1,5 +1,6 @@
 import { Dialog } from '@mui/material';
 import React, { useEffect, useState } from 'react';
+import * as API_URLS from '../../api/api_urls';
 
 const GastoModal = ({ open, onClose, gasto, categorias, setGastos, gastos }) => {
     const [formData, setFormData] = useState({ descripcion: '', cantidad: '', categoria: '' });
@@ -30,14 +31,14 @@ const GastoModal = ({ open, onClose, gasto, categorias, setGastos, gastos }) => 
             let res;
             if (gasto) {
                 // Editar gasto existente
-                res = await fetch(`http://localhost:5000/gastos/${gasto._id}`, {
+                res = await fetch(`${API_URLS.GASTOS}/${gasto._id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
                 });
             } else {
                 // Añadir nuevo gasto
-                res = await fetch('http://localhost:5000/gastos', {
+                res = await fetch(`${API_URLS.GASTOS}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)

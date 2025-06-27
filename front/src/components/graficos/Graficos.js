@@ -16,6 +16,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Bar, Line, Pie, Radar } from 'react-chartjs-2';
 import TotalGastos from '../gastos/TotalGastos';
 import './Graficos.css';
+import * as API_URLS from '../../api/api_urls';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, BarElement, Title, Tooltip, Legend, RadialLinearScale, ArcElement, PointElement);
 
@@ -27,11 +28,11 @@ const Graficos = () => {
     // Función para obtener datos filtrados desde el backend
     const fetchData = useCallback(async () => {
         try {
-            const categoriasRes = await axios.get('http://localhost:5000/categorias');
+            const categoriasRes = await axios.get(`${API_URLS.CATEGORIAS}`);
             setCategorias(categoriasRes.data);
 
             const params = new URLSearchParams(filtros).toString();
-            const gastosRes = await axios.get(`http://localhost:5000/gastos?${params}`);
+            const gastosRes = await axios.get(`${API_URLS.CATEGORIAS}?${params}`);
             setGastos(gastosRes.data);
         } catch (error) {
             console.error('Error al obtener los datos:', error);

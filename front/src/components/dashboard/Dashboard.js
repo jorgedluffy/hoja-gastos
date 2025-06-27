@@ -1,6 +1,7 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import './Dashboard.css';
+import * as API_URLS from '../../api/api_urls';
 
 const Resume = () => {
     const [gastos, setGastos] = useState([]);
@@ -8,7 +9,7 @@ const Resume = () => {
     useEffect(() => {
         const fetchGastos = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/gastos');
+                const res = await axios.get(`${API_URLS.GASTOS}`);
                 setGastos(res.data);
             } catch (error) {
                 console.error('Error al cargar los gastos:', error);
@@ -26,6 +27,7 @@ const Resume = () => {
             const fecha = new Date(gasto.fecha);
             const mes = fecha.getMonth();
 
+
             if (!resumen[categoria]) {
                 resumen[categoria] = Array(12).fill(0);
             }
@@ -34,6 +36,10 @@ const Resume = () => {
         });
         return resumen;
     };
+
+    const getColor = (categoria) => {
+        return gastos.filter(gasto => gasto.categoria?.nombre === categoria)[0]?.categoria?.color || '';
+    }
 
     return (
         <div className="resumen">
@@ -64,8 +70,8 @@ const Resume = () => {
                         {Object.entries(obtenerResumen()).map(([categoria, montos], index) => {
                             const total = montos.reduce((acc, val) => acc + val, 0);
                             return (
-                                <tr key={index}>
-                                    <td>{categoria}</td>
+                                <tr key={index} >
+                                    <td style={{ backgroundColor: getColor(categoria) }}>{categoria}</td>
                                     {montos.map((monto, i) => (
                                         <td key={i}>{monto.toFixed(2)}</td>
                                     ))}
