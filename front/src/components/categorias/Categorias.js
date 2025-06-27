@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button, Dialog, TextField, Typography, Grid, Card, CardContent, CardActions } from '@mui/material';
 import * as API_URLS from '../../api/api_urls';
+import ColorPicker from '../color-picker/ColorPicker';
 
 const Categorias = () => {
     const [categorias, setCategorias] = useState([]);
     const [nuevaCategoria, setNuevaCategoria] = useState('');
     const [nuevoColor, setNuevoColor] = useState('');
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [colorPickerOpen, setColorPickerOpen] = useState(false);
 
     useEffect(() => {
         const fetchCategorias = async () => {
@@ -89,7 +91,18 @@ const Categorias = () => {
                 ))}
             </Grid>
 
-            <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+            <Dialog
+                open={dialogOpen}
+                onClose={() => setDialogOpen(false)}
+                fullWidth
+                maxWidth="xs"
+                PaperProps={{
+                    style: {
+                        transition: 'min-height 0.3s',
+                        minHeight: colorPickerOpen ? 500 : 300,
+                    }
+                }}
+            >
                 <div style={{ padding: '2rem', minWidth: '300px' }}>
                     <Typography variant="h6" gutterBottom>
                         Nueva Categoría
@@ -102,14 +115,13 @@ const Categorias = () => {
                         onChange={(e) => setNuevaCategoria(e.target.value)}
                         style={{ marginBottom: '1rem' }}
                     />
-                    <TextField
-                        fullWidth
-                        label="Color de la categoría"
-                        variant="outlined"
-                        value={nuevoColor}
-                        onChange={(e) => setNuevoColor(e.target.value)}
-                        style={{ marginBottom: '1rem' }}
-                    />
+                    <div style={{ marginBottom: '1rem' }}>
+                        <ColorPicker
+                            onChange={setNuevoColor}
+                            onOpen={() => setColorPickerOpen(true)}
+                            onClose={() => setColorPickerOpen(false)}
+                        />
+                    </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Button onClick={() => setDialogOpen(false)} color="secondary">
                             Cancelar
