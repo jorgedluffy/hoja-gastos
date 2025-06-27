@@ -49,8 +49,8 @@ const Graficos = () => {
     const obtenerDatosPie = () => {
         const categoriasNombres = categorias.map(cat => cat.nombre);
         const categoriasTotales = categorias.map(cat =>
-            gastos.filter(g => g.categoria?._id === cat._id)
-                .reduce((sum, g) => sum + parseFloat(g.cantidad), 0)
+            gastos.filter(gasto => gasto.categoria?._id === cat._id)
+                .reduce((sum, gasto) => sum + parseFloat(gasto.cantidad), 0)
         );
         console.log(gastos)
         return {
@@ -64,10 +64,10 @@ const Graficos = () => {
     };
 
     const obtenerDatosLinea = () => {
-        const fechas = [...new Set(gastos.map(g => new Date(g.fecha).toLocaleDateString()))].sort();
+        const fechas = [...new Set(gastos.map(gasto => new Date(gasto.fecha).toLocaleDateString()))].sort();
         const totalPorFecha = fechas.map(fecha =>
-            gastos.filter(g => new Date(g.fecha).toLocaleDateString() === fecha)
-                .reduce((sum, g) => sum + parseFloat(g.cantidad), 0)
+            gastos.filter(gasto => new Date(gasto.fecha).toLocaleDateString() === fecha)
+                .reduce((sum, gasto) => sum + parseFloat(gasto.cantidad), 0)
         );
         return {
             labels: fechas,

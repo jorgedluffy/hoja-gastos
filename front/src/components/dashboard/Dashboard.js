@@ -24,20 +24,20 @@ const Resume = () => {
         gastos.forEach((gasto) => {
             const categoria = gasto.categoria?.nombre || 'Sin categoría';
             const fecha = new Date(gasto.fecha);
-            const mes = fecha.getMonth(); // 0: Enero, 11: Diciembre
+            const mes = fecha.getMonth();
 
             if (!resumen[categoria]) {
-                resumen[categoria] = Array(12).fill(0); // 12 meses
+                resumen[categoria] = Array(12).fill(0);
             }
 
             resumen[categoria][mes] += gasto.cantidad;
         });
         return resumen;
     };
-    //CATEGORIA, columna por mes con su sumatorio y una global anual total
+
     return (
-        <div className="dashboard">
-            <h1>Dashboard</h1>
+        <div className="resumen">
+            <h1>Resumen</h1>
 
 
             <section>

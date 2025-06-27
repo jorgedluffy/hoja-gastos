@@ -5,6 +5,7 @@ import { Button, Dialog, TextField, Typography, Grid, Card, CardContent, CardAct
 const Categorias = () => {
     const [categorias, setCategorias] = useState([]);
     const [nuevaCategoria, setNuevaCategoria] = useState('');
+    const [nuevoColor, setNuevoColor] = useState('');
     const [dialogOpen, setDialogOpen] = useState(false);
 
     useEffect(() => {
@@ -32,9 +33,10 @@ const Categorias = () => {
         }
 
         try {
-            const res = await axios.post('http://localhost:5000/categorias', { nombre: nuevaCategoria });
+            const res = await axios.post('http://localhost:5000/categorias', { nombre: nuevaCategoria, color: nuevoColor });
             setCategorias([...categorias, res.data]);
             setNuevaCategoria('');
+            setNuevoColor('');
             setDialogOpen(false);
         } catch (error) {
             console.error('Error al agregar la categoría:', error);
@@ -69,7 +71,7 @@ const Categorias = () => {
                 {categorias.map((cat) => (
                     <Grid item xs={12} sm={6} md={4} key={cat._id}>
                         <Card>
-                            <CardContent>
+                            <CardContent style={{ backgroundColor: cat.color }}>
                                 <Typography variant="h6">{cat.nombre}</Typography>
                             </CardContent>
                             <CardActions>
@@ -97,6 +99,14 @@ const Categorias = () => {
                         variant="outlined"
                         value={nuevaCategoria}
                         onChange={(e) => setNuevaCategoria(e.target.value)}
+                        style={{ marginBottom: '1rem' }}
+                    />
+                    <TextField
+                        fullWidth
+                        label="Color de la categoría"
+                        variant="outlined"
+                        value={nuevoColor}
+                        onChange={(e) => setNuevoColor(e.target.value)}
                         style={{ marginBottom: '1rem' }}
                     />
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>

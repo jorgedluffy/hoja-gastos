@@ -65,7 +65,7 @@ app.get('/categorias', async (req, res) => {
 
 app.post('/categorias', async (req, res) => {
     try {
-        const { nombre } = req.body;
+        const { nombre, color } = req.body;
 
         // Validar si ya existe la categoría
         const categoriaExistente = await Categoria.findOne({ nombre: nombre.trim() });
@@ -73,7 +73,7 @@ app.post('/categorias', async (req, res) => {
             return res.status(400).json({ error: 'La categoría ya existe' });
         }
 
-        const nuevaCategoria = new Categoria({ nombre: nombre.trim() });
+        const nuevaCategoria = new Categoria({ nombre: nombre.trim(), color: color });
         await nuevaCategoria.save();
         res.status(201).json(nuevaCategoria);
     } catch (err) {

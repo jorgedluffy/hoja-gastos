@@ -98,7 +98,7 @@ const Movimientos = () => {
 
     return (
         <div className="movimientos">
-            <h1>Dashboard</h1>
+            <h1>Movimientos</h1>
 
             {/* Sección CSV */}
             <CsvGastos>
@@ -181,7 +181,7 @@ const Movimientos = () => {
                     </thead>
                     <tbody>
                         {gastos.map((gasto) => (
-                            <tr key={gasto._id}>
+                            <tr key={gasto._id} style={{ backgroundColor: gasto.categoria?.color }}>
                                 <td>{gasto.descripcion}</td>
                                 <td>{gasto.cantidad}</td>
                                 <td>{gasto.categoria?.nombre}</td>
